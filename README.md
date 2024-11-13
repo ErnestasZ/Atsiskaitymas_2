@@ -4,4 +4,4 @@ Use venv environment .venv
 
 pip install -r requirements.txt
 
-flask db updrade
+flask db upgrade
