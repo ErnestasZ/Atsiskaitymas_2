@@ -5,3 +5,5 @@ Use venv environment .venv
 pip install -r requirements.txt
 
 flask db upgrade
+
+run file run.py
