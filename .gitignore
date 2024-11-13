@@ -1,0 +1,23 @@
+#Database
+instance/
+
+# Node modules
+node_modules/
+
+
+# Build files
+dist/
+build/
+
+# Environment variables
+.env
+
+# Log files
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# VS Code files
+.vscode/
