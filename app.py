@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from Misc.my_logger import my_logger
 
 db = SQLAlchemy()
 
@@ -12,6 +13,8 @@ def create_app():
     app.secret_key = 'SOME_SECRET_KEY'
 
     db.init_app(app)
+
+    my_logger.info('app created')
 
     # register Models
     import Models
