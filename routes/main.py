@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_user
 from werkzeug.security import check_password_hash
 from Models.user import User
+from datetime import datetime, timedelta
+
 main = Blueprint('main', __name__, url_prefix='/')
 
 
@@ -22,9 +24,21 @@ def register_main_routes(app, db):
             user = User.query.filter_by(email=user_login).first()
 
             # Check if user exists and password is correct
-            if user and user.check_password(password):
-                login_user(user)
-                return redirect(url_for('index'))
+            if user:
+                if user.blocked_until >= datetime.datetime.now():
+                    flash(f'You are blocked until {user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
+                else:
+                    if user.check_password(password):
+                        login_user(user)
+                        user.blocked_until = None
+                        user.failed_count = 0
+                        return redirect(url_for('index'))
+                    user.failed_count += 1
+                    if user.failed_count >= 4:
+                        user.blocked_until == datetime.datetime.now() + timedelta(hours=1)
+                    elif user.failed_count >= 3:
+                        user.blocked_until >= datetime.datetime.now() + timedelta(minutes=5)
+                    flash('Invalid email or password. Please try again.', 'danger')
             else:
                 flash('Invalid email or password. Please try again.', 'danger')
                 
