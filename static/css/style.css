@@ -58,3 +58,67 @@ header {
 .main-bg-c {
     background-color: #13AF91
 }
+.my-account-links[class*="grid"] {
+    --wd-col-lg: 3;
+    --wd-col-md: 2;
+    --wd-col-sm: 1;
+    --wd-gap-lg: 20px;
+    margin-top: 30px;
+}
+.grid-g {
+    display: grid;
+    grid-template-columns: repeat(var(--wd-col), minmax(0, 1fr));
+    gap: var(--wd-gap);
+}
+[class*="grid"] {
+    --wd-col: var(--wd-col-lg);
+    --wd-gap: var(--wd-gap-lg);
+    --wd-col-lg: 1;
+    --wd-gap-lg: 20px;
+}
+.acc-link-element {
+    background-color: rgb(255, 255, 255);
+    box-shadow: 0 3px 4px 0px #dfdfdf;
+    border: solid 1px #dfdfdf;
+    text-align: center;
+    padding: 25px;
+    transition: box-shadow 0.3s ease;
+}
+
+.acc-link-element img {
+    max-width: 100px;
+    margin-bottom: 15px;
+}
+.acc-link-element span {
+    font-weight: 500;
+    font-size: 16px;
+    color: #000000;
+}
+.acc-link-element:hover {
+    box-shadow: 0 0 10px 0px #13AF91; 
+}
+
+.acc-link-element a:hover {
+    color: #13AF91;
+    text-decoration: underline;
+}
+
+.my-account-wrapper {
+    display: flex;
+    margin-inline: -30px;
+}
+
+.my-account-sidebar {
+    flex: 1 0 25%;
+    max-width: 25%;
+    width: 25%;
+    padding: 10px 30px;
+    border-inline-end: 1px solid var(--brdcolor-gray-300);
+}
+
+.my-account-content {
+    flex: 1 0 75%;
+    max-width: 75%;
+    width: 75%;
+    padding: 10px 30px;
+}
