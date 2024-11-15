@@ -29,7 +29,7 @@
         </div>
         <div class="col-md-6 mb-3" id="register-form" style="display: none;" onsubmit="return showSuccessMessage(event)">
             <h2 class="text-center">Register</h2>
-            <form action="{{ url_for('main.index') }}" method="GET">  
+            <form action="{{ url_for('main.register') }}" method="POST">  
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" placeholder="Name" id="name" name="name">
                 </div>

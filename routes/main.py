@@ -13,6 +13,7 @@ def register_main_routes(app, db):
     def index():
         return render_template('index.html')
     
+    
     @main.route('/login', methods=['GET', 'POST'])
     def login():
         if request.method == 'POST':
