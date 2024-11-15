@@ -9,3 +9,7 @@ pip install -r requirements.txt
 flask db upgrade
 
 run file run.py
+
+<!-- How run faker db  -->
+
+python -m Services.faker_db
