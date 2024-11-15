@@ -10,4 +10,6 @@ class Product(db.Model):
     stock = db.Column(db.Integer, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    # updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+    # relations
+    order_items = db.relationship('Order_item', back_populates='product')
+    cart_products = db.relationship('Cart_product', back_populates='product')
