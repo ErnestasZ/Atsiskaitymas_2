@@ -171,3 +171,34 @@ h1 span, h2 span {
     --wd-gap-lg: 20px;
     margin-top: 30px;
 }
+.sort-widget .input-group {
+    max-width: 290px;
+    float: right;
+}
+
+.product-card-wrap a .product-title{
+    font-weight: 500;
+    min-height: 50px;
+    color: #000000;
+}
+.product-card-wrap a:hover{
+    text-decoration: none;
+}
+.product-card-wrap a .product-title:hover {
+    color: #13AF91;
+}
+.product-card-wrap .product-img {
+    width: auto;
+    height: 220px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.product-card-wrap .product-img img {
+    width: 100%;
+    height: 100%; 
+    object-fit: contain;
+}

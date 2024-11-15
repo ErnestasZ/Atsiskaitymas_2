@@ -2,19 +2,53 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_user
 from werkzeug.security import check_password_hash
 from Models.user import User
+from Models.product import Product
 from datetime import datetime, timedelta
 from Controllers.user import create_user, get_user_by_email, update_user
+from Controllers.product import get_average_rating, get_reviews, get_products
 
 main = Blueprint('main', __name__, url_prefix='/')
 
 
 def register_main_routes(app, db):
-
-
     @main.route('/')
     def index():
-        return render_template('index.html')
-    
+        sort_option = request.args.get('sort_option', 'default') # Default to 'default'
+        sort = {'key': 'default', 'order': 'asc'}  # Default sorting by title (asc)
+        if sort_option == 'default':
+            sort['key'] = 'title'
+            sort['order'] = 'asc'
+        elif sort_option == 'created_at_asc':
+            sort['key'] = 'created_at'
+            sort['order'] = 'asc'
+        elif sort_option == 'created_at_desc':
+            sort['key'] = 'created_at'
+            sort['order'] = 'desc'
+        elif sort_option == 'price_asc':
+            sort['key'] = 'price'
+            sort['order'] = 'asc'
+        elif sort_option == 'price_desc':
+            sort['key'] = 'price'
+            sort['order'] = 'desc'
+        elif sort_option == 'rating_asc':
+            sort['key'] = 'rating'
+            sort['order'] = 'asc'
+        elif sort_option == 'rating_desc':
+            sort['key'] = 'rating'
+            sort['order'] = 'desc'
+
+        products = get_products(db, {sort['key']: sort['order']})
+        for product in products:
+            product.average_rating = get_average_rating(product)
+        return render_template('index.html', products=products, sort_option=sort_option)
+
+    @main.route('/product/<int:product_id>')
+    def product_detail(product_id):
+        product = Product.query.get_or_404(product_id)
+        average_rating = get_average_rating(product)
+        reviews = get_reviews(product)
+        return render_template('product.html', product=product, average_rating=average_rating, reviews=reviews)
+
     
     @main.route('/login', methods=['GET', 'POST'])
     def login():
