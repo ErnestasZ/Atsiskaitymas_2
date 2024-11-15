@@ -57,6 +57,18 @@ def register_main_routes(app, db):
     def my_acc():
         return render_template('my_account.html')
     
+    @main.route('/my-account/orders')
+    def my_orders():
+        return render_template('orders.html')
+    
+    @main.route('/my-account/balance')
+    def my_balance():
+        return render_template('balance.html')
+    
+    @main.route('/my-account/user-details')
+    def my_details():
+        return render_template('user_details.html')
+    
     @main.route('/cart')
     def cart():
         return render_template('cart.html')
