@@ -1,4 +1,5 @@
 from app import db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -17,6 +18,13 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     # relations
     loyalty = db.relationship('Loyalty', back_populates='users')
+
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+    
     orders = db.relationship('Order', back_populates='user')
     cart_products = db.relationship('Cart_product', back_populates='user')
     wallet_transactions = db.relationship('Wallet_transaction', back_populates='user')

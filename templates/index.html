@@ -2,5 +2,62 @@
 {% block title %} Pagrindinis {% endblock %}
 
 {% block content %}
-<h1>Aisiskaitymas 2</h1>
+<section class="banner mb-3">
+    <div class="banner-content container text-center p-3">
+        <h1 class="mb-3"><span>Smile</span> Shop Project</h1>
+        <h6 class="mb-5">Created by Our Team</h6>
+        <div class="product-search">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="Search Product" aria-label="Search Product" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                  <a href="{{ url_for('main.product_search') }}" class="btn btn-outline-ss" type="button"><i class="fas fa-search"></i> Search</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="container">
+    <h2 class="text-center"><span>Let's check</span> our products</h3>
+    <h6 class="mb-5 text-center">The best products ever</h6>
+    <div class="row">
+        <div class="col-md-6">
+            
+        </div>
+        <div class="col-md-6 text-right">
+            O cia produktu rusiavima?
+        </div>
+    </div>
+    <div class="products grid-g">
+        <div class="product-card">
+            Product Name<br>
+            Product image<br>
+            Product rating<br>
+            Product stock status<br>
+            Product price<br>
+            Add to cart button<br>
+            View product button
+        </div>
+        <div class="product-card">
+            Product Name<br>
+            Product image<br>
+            Product rating<br>
+            Product stock status<br>
+            Product price<br>
+            Add to cart button<br>
+            View product button
+        </div>
+        <div class="product-card">
+            Product Name<br>
+            Product image<br>
+            Product rating<br>
+            Product stock status<br>
+            Product price<br>
+            Add to cart button<br>
+            View product button
+        </div>
+    </div>
+    <div class="text-center">
+        If lucky pagination here
+    </div>
+</section>
 {% endblock %}

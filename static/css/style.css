@@ -58,6 +58,38 @@ header {
 .main-bg-c {
     background-color: #13AF91
 }
+.btn.btn-outline-ss {
+    color: #000000;
+    border-color: #13AF91;
+}
+.btn.btn-outline-ss:hover {
+    color: #fff;
+    background-color: #13AF91;
+    border-color: #13AF91;
+}
+.banner {
+    background-image: url("/static/images/man-banner.jpg");
+    background-size: cover;
+    background-position: center center;
+    min-height: 300px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+}
+.product-search {
+    max-width: 600px;
+    margin: 0 auto;
+}
+h6 {
+    font-weight: 400 !important;
+    text-transform: uppercase;
+}
+h1 span, h2 span {
+    color: #13AF91;
+}
 .my-account-links[class*="grid"] {
     --wd-col-lg: 3;
     --wd-col-md: 2;
@@ -121,4 +153,21 @@ header {
     max-width: 75%;
     width: 75%;
     padding: 10px 30px;
+}
+
+.product-card {
+    background-color: rgb(255, 255, 255);
+    box-shadow: 0 3px 4px 0px #dfdfdf;
+    border: solid 1px #dfdfdf;
+    text-align: center;
+    padding: 25px;
+    transition: box-shadow 0.3s ease;
+}
+
+.products[class*="grid"] {
+    --wd-col-lg: 3;
+    --wd-col-md: 2;
+    --wd-col-sm: 1;
+    --wd-gap-lg: 20px;
+    margin-top: 30px;
 }
