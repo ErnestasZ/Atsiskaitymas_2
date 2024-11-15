@@ -45,6 +45,20 @@ def register_main_routes(app, db):
                 
         return render_template('login.html')
     
+
+    @main.route('/register', methods=['GET', 'POST'])
+    def register():
+        if request.method == 'POST':
+            user_first_name = request.form.get('name')
+            user_last_name = request.form.get('surname')
+            user_email = request.form.get('email-register')
+            user_password = request.form.get('password-register')
+
+            flash(f'TEST {user_first_name} {user_last_name} {user_email} {user_password} {user_password}.', 'info')
+                
+        return render_template('login.html')
+    
+
     @main.route('/logout')
     def logout():
         flash('You have been logged out.', 'info')
@@ -57,18 +71,6 @@ def register_main_routes(app, db):
     @main.route('/my-account')
     def my_acc():
         return render_template('my_account.html')
-    
-    @main.route('/my-account/orders')
-    def my_orders():
-        return render_template('orders.html')
-    
-    @main.route('/my-account/balance')
-    def my_balance():
-        return render_template('balance.html')
-    
-    @main.route('/my-account/user-details')
-    def my_details():
-        return render_template('user_details.html')
     
     @main.route('/cart')
     def cart():

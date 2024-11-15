@@ -30,6 +30,15 @@
         <div class="col-md-6 mb-3" id="register-form" style="display: none;" onsubmit="return showSuccessMessage(event)">
             <h2 class="text-center">Register</h2>
             <form action="{{ url_for('main.register') }}" method="POST">  
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="alert alert-danger">
+                            {% for message in messages %}
+                                <p>{{ message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" placeholder="Name" id="name" name="name">
                 </div>
