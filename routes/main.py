@@ -45,6 +45,10 @@ def register_main_routes(app, db):
     def checkout():
         return render_template('checkout.html')
     
+    @main.route('/product-search')
+    def product_search():
+        return render_template('search.html')
+    
     # register blueprint
 
     app.register_blueprint(main)
