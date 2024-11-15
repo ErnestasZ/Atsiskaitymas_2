@@ -3,7 +3,11 @@ from flask_login import login_user
 from werkzeug.security import check_password_hash
 from Models.user import User
 from datetime import datetime, timedelta
-from Controllers.user import create_user, get_user_by_email, update_user
+# from Controllers.user import create_user, get_user_by_email, update_user
+
+# from Controllers import db_provider as dbp
+from Models import *
+from Controllers import *
 
 main = Blueprint('main', __name__, url_prefix='/')
 
