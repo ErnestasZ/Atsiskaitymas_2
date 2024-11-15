@@ -3,11 +3,13 @@ from flask_login import login_user
 from werkzeug.security import check_password_hash
 from Models.user import User
 from datetime import datetime, timedelta
+from Controllers.user import create_user, get_user_by_email, update_user
 
 main = Blueprint('main', __name__, url_prefix='/')
 
 
 def register_main_routes(app, db):
+
 
     @main.route('/')
     def index():
@@ -20,12 +22,10 @@ def register_main_routes(app, db):
             # Get email and password from form
             user_login = request.form.get('email')
             password = request.form.get('password')
-            
             # Find the user by email
-            user = User.query.filter_by(email=user_login).first()
-
+            user = get_user_by_email(db, user_login)
             # Check if user exists and password is correct
-            if user:
+            if user and not user.is_deleted:
                 if user.blocked_until >= datetime.datetime.now():
                     flash(f'You are blocked until {user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
                 else:
@@ -33,29 +33,22 @@ def register_main_routes(app, db):
                         login_user(user)
                         user.blocked_until = None
                         user.failed_count = 0
+                        update_user(db, user)
                         return redirect(url_for('index'))
                     user.failed_count += 1
                     if user.failed_count >= 4:
                         user.blocked_until == datetime.datetime.now() + timedelta(hours=1)
                     elif user.failed_count >= 3:
                         user.blocked_until >= datetime.datetime.now() + timedelta(minutes=5)
+                    update_user(db, user)
                     flash('Invalid email or password. Please try again.', 'danger')
             else:
                 flash('Invalid email or password. Please try again.', 'danger')
-                
         return render_template('login.html')
     
 
     @main.route('/register', methods=['GET', 'POST'])
     def register():
-        if request.method == 'POST':
-            user_first_name = request.form.get('name')
-            user_last_name = request.form.get('surname')
-            user_email = request.form.get('email-register')
-            user_password = request.form.get('password-register')
-
-            flash(f'TEST {user_first_name} {user_last_name} {user_email} {user_password} {user_password}.', 'info')
-                
         return render_template('login.html')
     
 
