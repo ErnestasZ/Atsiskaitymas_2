@@ -12,4 +12,4 @@ run file run.py
 
 <!-- How run faker db  -->
 
-python -m Services.faker
+python -m Services.faker_db
