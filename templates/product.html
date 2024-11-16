@@ -1,0 +1,22 @@
+{% extends "/shared/main_layout.html" %}
+{% block title %} Product Detail {% endblock %}
+
+{% block content %}
+<section class="container">
+    <h2>{{ product.title }}</h2>
+    <div>
+        <img src="{{ product.image }}" alt="{{ product.title }}">
+    </div>
+    <div>{{ average_rating or 'No ratings yet' }} ★</div> <!-- Average rating -->
+    <div>{{ product.description }}</div>
+    <div>Price: €{{ product.price }}</div>
+    <button class="btn btn-primary">Add to cart</button>
+
+    <h4>Reviews</h4>
+    <ul>
+        {% for review in reviews %}
+            <li>{{ review.content }} - {{ review.rating }} ★</li> 
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

@@ -1,6 +1,105 @@
-{%extends "/shared/main_layout.html" %}
+{% extends "/shared/main_layout.html" %}
 {% block title %} Pagrindinis {% endblock %}
 
 {% block content %}
-<h1>Aisiskaitymas 2</h1>
+<section class="banner mb-3">
+    <div class="banner-content container text-center p-3">
+        <h1 class="mb-3"><span>Smile</span> Shop Project</h1>
+        <h6 class="mb-5">Created by Our Team</h6>
+        <div class="product-search">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="Search Product" aria-label="Search Product" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                  <a href="{{ url_for('main.product_search') }}" class="btn btn-outline-ss" type="button"><i class="fas fa-search"></i> Search</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="container">
+    <h2 class="text-center"><span>Let's check</span> our products</h2>
+    <h6 class="mb-5 text-center">The best products ever</h6>
+    <!-- Sorting form -->
+    <div class="row">
+        <div class="col-md-8"></div>
+        <div class="col-md-4 sort-widget">
+            <form class="input-group" method="get" action="{{ url_for('main.index') }}">
+                <select class="custom-select" name="sort_option" id="sort_option">
+                    <option value="default" {% if sort_option == 'default' %}selected{% endif %}>Default sorting</option>
+                    <option value="created_at_desc" {% if sort_option == 'created_at_desc' %}selected{% endif %}>Sort by latest</option>
+                    <option value="price_asc" {% if sort_option == 'price_asc' %}selected{% endif %}>Sort by price: low to high</option>
+                    <option value="price_desc" {% if sort_option == 'price_desc' %}selected{% endif %}>Sort by price: high to low</option>
+                    <option value="rating_asc" {% if sort_option == 'rating_asc' %}selected{% endif %}>Sort by rating: low to high</option>
+                    <option value="rating_desc" {% if sort_option == 'rating_desc' %}selected{% endif %}>Sort by rating: high to low</option>
+                </select>
+                <div class="input-group-append">
+                    <button class="btn btn-outline-ss" type="submit">Sort</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="products grid-g">
+        {% for product in products %}
+            {% if product.is_active %}
+            <div class="product-card">
+                <div class="product-card-wrap">
+                    <a href="{{ url_for('main.product_detail', product_id=product.id) }}">
+                        <div class="product-title mb-3">
+                                {{ product.title }}
+                        </div>
+                        <div class="product-img  mb-3">
+                            <img src="{{ product.image }}" alt="{{ product.title }}">
+                        </div>
+                        <div class="product-rating ">
+                            {% if product.average_rating %}
+                                <div class="rating-stars">
+                                    {% for i in range(1, 6) %}
+                                        {% if product.average_rating >= i %}
+                                            <!-- Full star -->
+                                            <i class="fa fa-star"></i>
+                                        {% elif product.average_rating > (i - 1) and product.average_rating < i %}
+                                            <!-- Half star -->
+                                            <i class="fa fa-star-half"></i>
+                                        {% else %}
+                                            <!-- Empty star -->
+                                            <i class="fa fa-star-o"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <!-- <div>{{ product.average_rating|round(1) }} / 5</div> -->
+                            {% else %}
+                                <div class="rating-stars">
+                                    <!-- Display 5 empty stars if no rating -->
+                                    <i class="fa fa-star-o"></i>
+                                    <i class="fa fa-star-o"></i>
+                                    <i class="fa fa-star-o"></i>
+                                    <i class="fa fa-star-o"></i>
+                                    <i class="fa fa-star-o"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if product.stock > 0 %}
+                                <p>In Stock</p>
+                            {% else %}
+                                <p>Out of Stock</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            € {{ product.price }}
+                        </div>
+                    </a>
+                </div>
+                <button class="btn btn-primary">Add to cart</button><br>
+                <a href="{{ url_for('main.product_detail', product_id=product.id) }}">
+                    <button class="btn btn-secondary">View product</button>
+                </a>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="text-center">
+        If lucky pagination here
+    </div>
+</section>
 {% endblock %}
