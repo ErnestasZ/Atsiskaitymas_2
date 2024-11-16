@@ -10,7 +10,7 @@ class User(db.Model):
     password = db.Column(db.String(64), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     token = db.Column(db.String)
-    verified_at = db.Column(db.Date)
+    veryfied_at = db.Column(db.Date)
     is_deleted = db.Column(db.Boolean, default=False)
     blocked_until = db.Column(db.DateTime)
     failed_count = db.Column(db.Integer)

@@ -1,6 +1,6 @@
 from Models import Order
 
-def create_order(db, order:Order) -> True|str:
+def create_order(db, order:Order) -> bool|str:
     """
     Returns [bool]True on success 
     Returns [str] error message on fail
@@ -22,7 +22,7 @@ def get_order_by_id(db, order_id:int) -> Order | None:
     """
     ...
 
-def add_review(db, order_id:int, product_id:int) -> True | str:
+def add_review(db, order_id:int, product_id:int) -> bool | str:
     """
     Returns [bool]True on success 
     Returns [str] error message on fail
