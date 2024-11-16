@@ -7,11 +7,14 @@
         <h1 class="mb-3"><span>Smile</span> Shop Project</h1>
         <h6 class="mb-5">Created by Our Team</h6>
         <div class="product-search">
-            <div class="input-group mb-3">
-                <input type="text" class="form-control" placeholder="Search Product" aria-label="Search Product" aria-describedby="basic-addon2">
-                <div class="input-group-append">
-                  <a href="{{ url_for('main.product_search') }}" class="btn btn-outline-ss" type="button"><i class="fas fa-search"></i> Search</a>
-                </div>
+            <div class="mb-3">
+                <form class="input-group" action="{{ url_for('main.index') }}" method="get">
+                    <input type="text" class="form-control" placeholder="Search Product" value="{{ request.args.get('search', '') }}" name="search">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-ss" type="submit"><i class="fas fa-search"></i> Search</button>
+                    </div>
+                </form> 
+                
             </div>
         </div>
     </div>
@@ -21,7 +24,18 @@
     <h6 class="mb-5 text-center">The best products ever</h6>
     <!-- Sorting form -->
     <div class="row">
-        <div class="col-md-8"></div>
+        <div class="col-md-8">
+            <form action="{{ url_for('main.index') }}" method="get">
+                <div class="input-group mb-3">
+                    <input type="number" class="form-control" placeholder="Min Price" value="{{ request.args.get('min_price', '') }}" name="min_price">
+                    <input type="number" class="form-control" placeholder="Max Price" value="{{ request.args.get('max_price', '') }}" name="max_price">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-ss" type="submit">Filter by Price</button>
+                    </div>
+                </div>
+            </form>
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">Reset All Filters</a>
+        </div>
         <div class="col-md-4 sort-widget">
             <form class="input-group" method="get" action="{{ url_for('main.index') }}">
                 <select class="custom-select" name="sort_option" id="sort_option">
@@ -38,6 +52,11 @@
             </form>
         </div>
     </div>
+    {% if no_products_message %}
+    <div class="alert alert-warning">
+        {{ no_products_message }}
+    </div>
+    {% endif %}
     <div class="products grid-g">
         {% for product in products %}
             {% if product.is_active %}

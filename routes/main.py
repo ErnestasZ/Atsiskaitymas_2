@@ -5,7 +5,7 @@ from Models.user import User
 from Models.product import Product
 from datetime import datetime, timedelta
 from Controllers.user import create_user, get_user_by_email, update_user
-from Controllers.product import get_average_rating, get_reviews, get_products
+from Controllers.product import get_average_rating, get_reviews, get_products, get_sorting_option
 
 main = Blueprint('main', __name__, url_prefix='/')
 
@@ -13,40 +13,29 @@ main = Blueprint('main', __name__, url_prefix='/')
 def register_main_routes(app, db):
     @main.route('/')
     def index():
+        search_option = request.args.get('search', '').strip()
+        min_price = request.args.get('min_price', None)  # Get min price
+        max_price = request.args.get('max_price', None)  # Get max price
         sort_option = request.args.get('sort_option', 'default') # Default to 'default'
-        sort = {'key': 'default', 'order': 'asc'}  # Default sorting by title (asc)
-        if sort_option == 'default':
-            sort['key'] = 'title'
-            sort['order'] = 'asc'
-        elif sort_option == 'created_at_asc':
-            sort['key'] = 'created_at'
-            sort['order'] = 'asc'
-        elif sort_option == 'created_at_desc':
-            sort['key'] = 'created_at'
-            sort['order'] = 'desc'
-        elif sort_option == 'price_asc':
-            sort['key'] = 'price'
-            sort['order'] = 'asc'
-        elif sort_option == 'price_desc':
-            sort['key'] = 'price'
-            sort['order'] = 'desc'
-        elif sort_option == 'rating_asc':
-            sort['key'] = 'rating'
-            sort['order'] = 'asc'
-        elif sort_option == 'rating_desc':
-            sort['key'] = 'rating'
-            sort['order'] = 'desc'
 
-        products = get_products(db, {sort['key']: sort['order']})
+        min_price = float(min_price) if min_price else None
+        max_price = float(max_price) if max_price else None 
+
+        sort = get_sorting_option(sort_option) # Sorting options
+        products = get_products(db, {sort['key']: sort['order']}, name=search_option, price=[min_price, max_price]) 
         for product in products:
-            product.average_rating = get_average_rating(product)
-        return render_template('index.html', products=products, sort_option=sort_option)
+            product.average_rating = get_average_rating(product) # Get rating for each product in list
+        no_products_message = None
+        if not products:
+            no_products_message = "No products found."
+
+        return render_template('index.html', products=products, sort_option=sort_option, name=search_option, min_price=min_price, max_price=max_price, no_products_message=no_products_message)
 
     @main.route('/product/<int:product_id>')
     def product_detail(product_id):
-        product = Product.query.get_or_404(product_id)
-        average_rating = get_average_rating(product)
-        reviews = get_reviews(product)
+        product = Product.query.get_or_404(product_id) # get products by ID
+        average_rating = get_average_rating(product) # get product rating
+        reviews = get_reviews(product) # get product revievs
         return render_template('product.html', product=product, average_rating=average_rating, reviews=reviews)
 
     
@@ -106,10 +95,6 @@ def register_main_routes(app, db):
     @main.route('/checkout')
     def checkout():
         return render_template('checkout.html')
-    
-    @main.route('/product-search')
-    def product_search():
-        return render_template('search.html')
     
     # register blueprint
 
