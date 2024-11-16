@@ -3,7 +3,6 @@ from Models import *
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.model import DefaultMeta
-# flask_sqlalchemy.model.DefaultMeta
 
 def create_object(obj: object, **kwargs):
     try:
