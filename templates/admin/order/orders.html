@@ -1,0 +1,59 @@
+{%extends "/shared/admin_layout.html" %}
+{% block title %} Admin Dashboard {% endblock %}
+
+{% block content %}
+
+{% if orders %}
+<div class="mt-4">
+    <h2>All Orders:</h2>
+    <p>
+        <strong>total sale EUR:</strong> {{ total }}
+    </p>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Email / Created At</th>
+                <th>Status</th>
+                <th>Loyalty discount</th>
+                <th>Items / Review qty</th>
+                <th>Total Amount</th>
+                <th>Action</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.id }}</td>
+                <td>
+                    <div class="">{{ order.email }}</div>
+                    <div class="text-muted">
+                        <small>
+                            {{ order.created_at }}
+                        </small>
+                    </div>
+                </td>
+                <td>{{ order.status }}</td>
+                <td>{{ order.loyalty_discount }}</td>
+                <td>
+                    <div class="">Items: {{ order.total_qty }}</div>
+                    <div class="text-muted">
+                        <small>
+                            Total reviews {{order.count_reviews}}
+                        </small>
+                    </div>
+                </td>
+                <td>{{ order.total_amount }}</td>
+                <td> <a href="{{url_for('order.order_items', order_id=order.id)}}" class="btn btn-primary">View /
+                        Edit</a></td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No orders found for the selected date range.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -22,8 +22,12 @@ def create_app():
     # register new routes from routes folder
     from routes.main import register_main_routes
     from routes.admin import register_admin_routes
+    from routes.dashboard import register_dashboard_routes
+    from routes.admin_order import register_order_routes
     register_main_routes(app, db)
     register_admin_routes(app, db)
+    register_dashboard_routes(app, db)
+    register_order_routes(app, db)
 
     migrate = Migrate(app, db)
 
