@@ -10,8 +10,11 @@ from Models.order import Order
 from Models.user import User
 from Models.order_item import Order_item
 from Models.review import Review
+from Models.loyalty import Loyalty
 from sqlalchemy import func, select
-from Misc.constants import ORDER_STATUSES
+from sqlalchemy.orm import joinedload
+from Misc.constants import ORDER_STATUSES, LOYALTIES
+# from Controllers.main_myaccount import get_user_expenses
 
 # ka issivesti
 
@@ -32,7 +35,7 @@ def get_orders():
     ).join(User, Order.user_id == User.id) \
         .join(Order_item, Order.id == Order_item.order_id) \
         .outerjoin(Review, Review.order_item_id == Order_item.id) \
-        .group_by(Order.id, Order.status, Order.total_amount, Order.created_at, User.email) \
+        .group_by(Order.id, Order.status, Order.total_amount, Order.created_at) \
         .order_by(Order.created_at.desc(), Order.total_amount.desc()) \
         .all()
     total_sale = sum(item.total_amount for item in orders)
@@ -140,3 +143,38 @@ def get_order_with_user_by_id(order_id):
         .first()
 
     return order
+
+
+def check_loyalty(user_id):
+    # is user has loyalty
+    users_with_loyalty = db.session.query(
+        User) \
+        .filter(User.id == user_id) \
+        .options(joinedload(User.loyalty)).first()
+
+    if users_with_loyalty.loyalty_id:
+        return f'user has loyalty {users_with_loyalty.loyalty.discout}%'
+
+    # get user orders count and total amount
+    total_amounts = db.session.execute(
+        select(
+            Order.user_id,
+            func.sum(Order_item.total_price).label('expense_amount'),
+            func.count(Order_item.id).label('order_count')
+        ).where(Order.user_id == user_id, Order.status.in_(['Pending', 'Done']))
+        .group_by(Order.user_id)
+    ).first()
+
+    # check by constants LOYALTIES
+    if total_amounts.expense_amount >= LOYALTIES['amount'] and total_amounts.order_count >= LOYALTIES['orders']:
+        # loyalty = Loyalty.query.filter_by(discout=LOYALTIES['percents']).first()
+        loyalty = Loyalty.query.first()
+        if loyalty:
+            users_with_loyalty.loyalty_id = loyalty.id
+            db.session.commit()
+        else:
+            raise Exception("Loyalty not found")
+
+        return f'Add to user loyalty discount {loyalty.discout}% seccessfuly'
+
+    # LOYALTIES = {'orders': 5, 'amount': 1500, 'percents': 10}

@@ -16,13 +16,17 @@ def register_order_routes(app, db):
     @order.route('/edit/<int:order_id>', methods=['POST', 'GET'])
     def order_items(order_id):
         status_form = forms.StatusForm()
+        items, order, statuses = ar.get_order_items(order_id)
         if status_form.validate_on_submit():
             # print(status_form.status.data)
             ar.set_order_status(order_id, status_form.status.data)
             flash('Order status changed successfully.', 'admin success')
+            try:
+                ar.check_loyalty(order.user_id)
+            except Exception as e:
+                flash(f"Loyalty check: {e}", 'admin danger')
             return redirect(url_for('order.order_items', order_id=order_id))
 
-        items, order, statuses = ar.get_order_items(order_id)
         status_form.status.data = order.status
 
         return render_template('admin/order/order_items.html',

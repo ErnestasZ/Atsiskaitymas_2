@@ -65,13 +65,7 @@ def get_user_balance(user_id):
     ).first()
 
     # only where order status is Pending or Done
-    expenses = db.session.execute(
-        select(
-            Order.user_id,
-            func.sum(Order_item.total_price).label('expence_amount')
-        ).where(Order.user_id == user_id, Order.status.in_(['Pending', 'Done']))
-        .group_by(Order.user_id)
-    ).first()
+    expenses = get_user_expenses(user_id)
 
     return round(wallet_sum.sum_amount - expenses.expence_amount, 2)
 
@@ -80,3 +74,15 @@ def add_balance(user_id, amount):
     wallet_transaction = Wallet_transaction(user_id=user_id, amount=amount)
     db.session.add(wallet_transaction)
     db.session.commit()
+
+
+def get_user_expenses(user_id):
+    expenses = db.session.execute(
+        select(
+            Order.user_id,
+            func.sum(Order.total_amount).label('expence_amount')
+        ).where(Order.user_id == user_id, Order.status.in_(['Pending', 'Done']))
+        .group_by(Order.user_id)
+    ).first()
+
+    return expenses
