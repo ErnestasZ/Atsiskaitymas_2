@@ -30,7 +30,7 @@ class UserView(ModelView):
         'email',
         'password',
         'is_admin',
-        'veryfied_at',
+        'verified_at',
         'is_deleted',
         'loyalty'
         ) 
@@ -59,7 +59,7 @@ class UserView(ModelView):
         'email' : 'Email',
         'password' : 'password',
         'is_admin' : 'Admin',
-        'veryfied_at' : 'Verified',
+        'verified_at' : 'Verified',
         'is_deleted' : 'Deleted',
         'loyalty' : 'Loyalty status'
     }

@@ -1,27 +1,27 @@
 from Models import Cart_product
 
-def add_to_cart(db, cart_product:Cart_product) -> True | str:
+def add_to_cart(db, cart_product:Cart_product) -> bool | str:
     """
     Returns [bool] True on success
     Returns [str] error message on fail
     """
     ...
 
-def drop_cart(db, user_id:int = None) -> True | str:
+def drop_cart(db, user_id:int = None) -> bool | str:
     """
     Returns [bool] True on success
     Returns [str] error message on fail
     """
     ...
 
-def update_cart_product(db, cart_product:Cart_product) -> True | str:
+def update_cart_product(db, cart_product:Cart_product) -> bool | str:
     """
     Returns [bool] True on success
     Returns [str] error message on fail
     """
     ...
 
-def delete_cart_product(db, cart_product:Cart_product) -> True | str:
+def delete_cart_product(db, cart_product:Cart_product) -> bool | str:
     """
     Returns [bool] True on success
     Returns [str] error message on fail
