@@ -250,7 +250,7 @@ i.fa-star-o {
     font-size: 24px;
 }
 
-.product-card-wrap .product-actions {
+.product-card .product-actions {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -271,4 +271,30 @@ i.fa-star-o {
     text-align: center;
     padding: 25px;
     transition: box-shadow 0.3s ease;
+}
+
+.product-add-to-car {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.product-add-to-car input {
+    max-width: 100px;
+    margin-right: 15px;
+}
+.cart-products input {
+    max-width: 80px;
+}
+
+.cart-totals {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: space-between;
+    align-items: center;
 }

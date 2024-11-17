@@ -24,7 +24,7 @@
     <h6 class="mb-5 text-center">The best products ever</h6>
     <!-- Sorting form -->
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-4">
             <form action="{{ url_for('main.index') }}" method="get">
                 <div class="input-group mb-3">
                     <input type="number" class="form-control" placeholder="Min Price" value="{{ request.args.get('min_price', '') }}" name="min_price">
@@ -34,6 +34,9 @@
                     </div>
                 </div>
             </form>
+            
+        </div>
+        <div class="col-md-4">
             <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">Reset All Filters</a>
         </div>
         <div class="col-md-4 sort-widget">
@@ -111,7 +114,9 @@
                 </div>
                 <div class="product-actions ">
                     {% if product.stock > 0 %}
-                    <a href="" class="btn btn-ss"><i class="fas fa-cart-plus"></i> Add to cart</a>
+                    <form id="add-to-cart-form-{{ product.id }}" action="{{ url_for('main.add_to_cart', product_id=product.id) }}" method="post" onsubmit="addToCart(event, '{{ product.id }}')">
+                        <button type="submit" class="btn btn-ss"><i class="fas fa-cart-plus"></i> Add to cart</button>
+                    </form>
                     {% endif %}
                     <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-outline-ss"><i class="fas fa-eye"></i> View product</a>
                 </a>

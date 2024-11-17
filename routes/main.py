@@ -1,11 +1,13 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, g
 from flask_login import login_user
 from werkzeug.security import check_password_hash
 from Models.user import User
 from Models.product import Product
+from Models.cart_product import Cart_product
 from datetime import datetime, timedelta
 from Controllers.user import create_user, get_user_by_email, update_user
 from Controllers.product import get_average_rating, get_reviews, get_products, get_sorting_option
+from Controllers.cart import get_session_id
 
 main = Blueprint('main', __name__, url_prefix='/')
 
@@ -18,13 +20,13 @@ def register_main_routes(app, db):
         max_price = request.args.get('max_price', None)  # Get max price
         sort_option = request.args.get('sort_option', 'default') # Default to 'default'
 
-        min_price = float(min_price) if min_price else None
-        max_price = float(max_price) if max_price else None 
-
         sort = get_sorting_option(sort_option) # Sorting options
+
         products = get_products(db, {sort['key']: sort['order']}, name=search_option, price=[min_price, max_price]) 
+
         for product in products:
             product.average_rating = get_average_rating(product) # Get rating for each product in list
+
         no_products_message = None
         if not products:
             no_products_message = "No products found."
@@ -87,11 +89,56 @@ def register_main_routes(app, db):
     @main.route('/my-account')
     def my_acc():
         return render_template('my_account.html')
-    
+
+    @main.route('/add_to_cart/<int:product_id>', methods=['POST'])
+    def add_to_cart(product_id):
+        qty = request.form.get('qty', 1) # Default quantity
+        session_id = get_session_id() # Get fake session ID
+        
+        # Check if product already in the cart
+        cart_product = Cart_product.query.filter_by(session_id=session_id, product_id=product_id).first()
+
+        if cart_product:
+            cart_product.qty += int(qty)
+        else:
+            cart_product = Cart_product(session_id=session_id, product_id=product_id, qty=int(qty))
+            db.session.add(cart_product)
+        
+        db.session.commit()
+        return jsonify({'message': 'Product added to cart'})
+
     @main.route('/cart')
     def cart():
-        return render_template('cart.html')
+        session_id = get_session_id()
+        cart_products = Cart_product.query.filter_by(session_id=session_id).all()
+        total_price = sum(item.product.price * item.qty for item in cart_products)
+        total_price = round(total_price, 2)
+        return render_template('cart.html', cart_products=cart_products, total_price=total_price)
     
+    @main.route('/update_cart', methods=['POST'])
+    def update_cart():
+        session_id = get_session_id()  # Get session ID
+
+        # all form fields
+        for key, value in request.form.items():
+            if key.startswith('qty_'):
+                item_id = int(key.split('_')[1])  # Extract item ID from the form field name
+                cart_item = Cart_product.query.get(item_id)
+                if cart_item:
+                    cart_item.qty = int(value)  # Update the quantity
+            elif key.startswith('remove_'):
+                item_id = int(key.split('_')[1])  # Extract item ID for removal
+                cart_item = Cart_product.query.get(item_id)
+                if cart_item:
+                    db.session.delete(cart_item)  # Remove item
+        db.session.commit() 
+        return redirect(url_for('main.cart'))
+    
+    @main.before_app_request
+    def before_request():
+        session_id = get_session_id()
+        g.cart_quantity = db.session.query(db.func.sum(Cart_product.qty)).filter_by(session_id=session_id).scalar() or 0
+
     @main.route('/checkout')
     def checkout():
         return render_template('checkout.html')
