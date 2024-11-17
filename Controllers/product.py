@@ -1,4 +1,28 @@
+from sqlalchemy import select, not_, and_, or_
 from Models import Product, Review, Order_item
+from Controllers import db_provider as dbp
+
+session = dbp.db.session
+
+def get_product_by_id(id: int) -> (Product | None):
+    stmt = select(Product).where(Product.id == id)
+    return session.execute(stmt).scalars().first()
+
+def get_all_products() -> list[Product]:
+    return session.execute(select(Product)).scalars().all()
+
+def update_product(id: int = None, product: Product = None, **kwargs) -> (Product | Exception):
+    if not product and id:
+        product = get_product_by_id(id)
+    
+    if isinstance(product, Product):
+        result = dbp.push_db_record(product, **kwargs)
+    else:
+        result = ValueError("Unable to update a non-existent database record!")
+    return result
+
+def add_product(**kwargs) -> (Product | Exception):
+    return dbp.push_db_record(Product, **kwargs)
 
 def get_average_rating(product):
     total_rating = sum(review.rating for order_item in product.order_items for review in order_item.reviews if review.rating is not None)
@@ -60,13 +84,3 @@ def get_products(db, sort: dict[str, str], name: str = None, price: list[float] 
         products.sort(key=lambda p: (p.average_rating is not None, p.average_rating), reverse=(sort['rating'].lower() == 'desc'))
 
     return products
-
-
-
-
-# def update_product(db, product:Product) -> True | str:
-#     """
-#     Returns [bool] True on success
-#     Returns [str] error message on fail
-#     """
-#     ...
