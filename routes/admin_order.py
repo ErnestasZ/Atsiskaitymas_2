@@ -19,7 +19,7 @@ def register_order_routes(app, db):
         if status_form.validate_on_submit():
             # print(status_form.status.data)
             ar.set_order_status(order_id, status_form.status.data)
-            flash('Order status changed successfully.', 'success')
+            flash('Order status changed successfully.', 'admin success')
             return redirect(url_for('order.order_items', order_id=order_id))
 
         items, order, statuses = ar.get_order_items(order_id)
@@ -41,7 +41,7 @@ def register_order_routes(app, db):
         )
         if form.validate_on_submit():
             ar.set_review(item_id, form.rating.data, form.content.data)
-            flash('Review updated successfully.', 'success')
+            flash('Review updated successfully.', 'admin success')
             return redirect(url_for('order.item_review', order_id=order_id, item_id=item_id))
 
         return render_template('admin/order/item_review.html', form=form, review=review, order=order)
@@ -49,7 +49,7 @@ def register_order_routes(app, db):
     @order.route('/<int:order_id>/review/<int:item_id>/delete/<int:review_id>', methods=['POST'])
     def delete_review(order_id, item_id, review_id):
         ar.remove_review(review_id)
-        flash('Review deleted successfully.', 'success')
+        flash('Review deleted successfully.', 'admin success')
         return redirect(url_for('order.item_review', order_id=order_id, item_id=item_id))
 
     app.register_blueprint(order)

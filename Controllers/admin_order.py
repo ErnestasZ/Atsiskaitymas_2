@@ -44,22 +44,23 @@ def get_orders():
 # id, order_id, product_id, gty, product_name, unit_price, total_amount, created_at, review.id, review.rating, review.content
 
 def get_order_items(order_id):
-    order_items = db.session.query(
-        Order_item.id,
-        Order_item.order_id,
-        Order_item.product_id,
-        Order_item.qty,
-        Order_item.product_name,
-        func.round(Order_item.unit_price, 2).label('unit_price'),
-        func.round(Order_item.total_price, 2).label('total_price'),
-        Order_item.created_at,
-        Review.id.label("review_id"),
-        Review.rating.label("rating"),
-        Review.content.label("content")
-    ) \
-        .outerjoin(Review, Review.order_item_id == Order_item.id) \
-        .filter(Order_item.order_id == order_id) \
-        .all()
+    order_items = db.session.execute(
+        select(
+            Order_item.id,
+            Order_item.order_id,
+            Order_item.product_id,
+            Order_item.qty,
+            Order_item.product_name,
+            func.round(Order_item.unit_price, 2).label('unit_price'),
+            func.round(Order_item.total_price, 2).label('total_price'),
+            Order_item.created_at,
+            Review.id.label("review_id"),
+            Review.rating.label("rating"),
+            Review.content.label("content")
+        )
+        .outerjoin(Review, Review.order_item_id == Order_item.id)
+        .filter(Order_item.order_id == order_id)
+    ).all()
 
     order = get_order_with_user_by_id(order_id)
 
