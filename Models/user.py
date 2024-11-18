@@ -61,4 +61,4 @@ class User(db.Model, UserMixin):
             .filter(Wallet_transaction.user_id == self.id).scalar() or 0
         orders_total = db.session.query(func.sum(Order.total_amount)) \
             .filter(Order.user_id == self.id).scalar() or 0
-        return wallet_total - orders_total
+        return round(wallet_total - orders_total, 2)

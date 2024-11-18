@@ -230,14 +230,16 @@ def register_main_routes(app, db):
     @main.route('/my-account/balance', methods=['GET', 'POST'])
     @login_required
     def my_balance():
-        user_id = current_user.id
-        balance = myac.get_user_balance(user_id)
+        # user_id = current_user.id
+        # balance = myac.get_user_balance(user_id)
+        balance = current_user.get_balance()
         form = us_forms.BalanceForm()
         if form.validate_on_submit():
-            myac.add_balance(user_id, form.balance.data)  # pass user id
+            # pass user id
+            myac.add_balance(current_user.id, form.balance.data)
             flash('Balance updated successfully.', 'main success')
             return redirect(url_for('main.my_balance'))
-        return render_template('balance.html', balance=balance, form=form, user=user)
+        return render_template('balance.html', balance=balance, form=form)
 
     @main.route('/my-account/user-details', methods=['GET', 'POST'])
     @login_required
