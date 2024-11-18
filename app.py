@@ -10,7 +10,6 @@ def create_app():
     app = Flask(__name__, template_folder="templates")
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///shop.db"
     app.config['SECRET_KEY'] = 'your_secret_key'
-    app.secret_key = 'SOME_SECRET_KEY'
 
     db.init_app(app)
 

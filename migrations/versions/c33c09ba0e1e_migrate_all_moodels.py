@@ -76,7 +76,7 @@ def upgrade():
 
     with op.batch_alter_table('users', schema=None) as batch_op:
         batch_op.add_column(sa.Column('created_at', sa.DateTime(), nullable=True))
-        batch_op.alter_column('veryfied_at',
+        batch_op.alter_column('verified_at',
                existing_type=sa.DATE(),
                type_=sa.DateTime(),
                existing_nullable=True)
@@ -95,7 +95,7 @@ def downgrade():
                existing_type=sa.DateTime(),
                type_=sa.DATE(),
                existing_nullable=True)
-        batch_op.alter_column('veryfied_at',
+        batch_op.alter_column('verified_at',
                existing_type=sa.DateTime(),
                type_=sa.DATE(),
                existing_nullable=True)

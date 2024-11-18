@@ -33,7 +33,7 @@ def upgrade():
     sa.Column('password', sa.String(), nullable=False),
     sa.Column('is_admin', sa.Boolean(), nullable=True),
     sa.Column('token', sa.String(), nullable=True),
-    sa.Column('veryfied_at', sa.Date(), nullable=True),
+    sa.Column('verified_at', sa.Date(), nullable=True),
     sa.Column('is_deleted', sa.Boolean(), nullable=True),
     sa.Column('blocked_until', sa.Date(), nullable=True),
     sa.Column('failed_count', sa.Integer(), nullable=True),
@@ -43,6 +43,14 @@ def upgrade():
     sa.UniqueConstraint('email')
     )
     # ### end Alembic commands ###
+
+    # uzpildom pradine informacija: loyalties
+    op.execute("""
+        INSERT INTO loyalties (id, name, discount, created_at)
+        VALUES
+        (1, 'Bronze', 0.0, CURRENT_TIMESTAMP),
+        (2, 'Silver', 5.0, CURRENT_TIMESTAMP)
+    """)    
 
 
 def downgrade():
