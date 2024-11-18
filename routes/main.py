@@ -42,7 +42,6 @@ def register_main_routes(app, db):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-
     @main.route('/')
     def index():
         search_option = request.args.get('search', '').strip()
@@ -85,14 +84,16 @@ def register_main_routes(app, db):
             user = get_user_by_email(db, user_login)
             # Check if user exists and password is correct
             if user and not user.is_deleted:
-                if not(user.blocked_until is None) and user.blocked_until >= datetime.now():
+                if not (user.blocked_until is None) and user.blocked_until >= datetime.now():
                     flash(f'You are blocked until {
                           user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
                 if user.verified_at is None:
                     # [!] pakartotinai issiusti verifikavimo e-mail
-                    flash(f'Your e-mail is not verified. Check your e-mail anf follow the link.', 'warning')
+                    flash(
+                        f'Your e-mail is not verified. Check your e-mail anf follow the link.', 'warning')
                 elif (not user.blocked_until is None) and (user.blocked_until >= datetime.now()):
-                    flash(f'You are blocked until {user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
+                    flash(f'You are blocked until {
+                          user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
                 else:
                     if user.check_password(password):
                         login_user(user)
@@ -126,7 +127,8 @@ def register_main_routes(app, db):
                 return redirect(url_for('main.login'))
             existing_user = get_user_by_email(db, email)
             if existing_user:
-                flash('Email is already registered. Please use a different email.', 'danger')
+                flash(
+                    'Email is already registered. Please use a different email.', 'danger')
                 return redirect(url_for('main.login'))
             # create
             new_user = User(
@@ -152,7 +154,6 @@ def register_main_routes(app, db):
                 flash('Your account has been created successfully!', 'success')
                 return redirect(url_for('main.registration_success'))
         return redirect(url_for('main.login'))
-    
 
     @main.route('/logout')
     def logout():
@@ -160,8 +161,6 @@ def register_main_routes(app, db):
         logout_user()
         flash('You have been logged out.', 'info')
         return redirect(url_for('main.index'))
-
-
 
     @app.route('/verify-email/<token>')
     def verify_email(token):
@@ -173,7 +172,6 @@ def register_main_routes(app, db):
             flash(r, 'danger')
             return redirect(url_for('main.index'))
 
-
     # @main.route('/lost-password', methods=['GET', 'POST'])
     # def lost_password():
     #     return render_template('lost_password.html')
@@ -184,7 +182,7 @@ def register_main_routes(app, db):
 
     @main.route('/my-account/orders')
     def my_orders():
-        orders, total = myac.get_user_orders_by_id(8)  # pass user id
+        orders, total = myac.get_user_orders_by_id(3)  # pass user id
         return render_template('orders.html', orders=orders, total=total)
 
     @main.route('/my-account/orders/<int:order_id>')
@@ -221,7 +219,7 @@ def register_main_routes(app, db):
 
     @main.route('/my-account/balance', methods=['GET', 'POST'])
     def my_balance():
-        user_id = 8  # pass user id
+        user_id = 3  # pass user id
         balance = myac.get_user_balance(user_id)
         form = us_forms.BalanceForm()
         if form.validate_on_submit():
@@ -232,7 +230,7 @@ def register_main_routes(app, db):
 
     @main.route('/my-account/user-details', methods=['GET', 'POST'])
     def my_details():
-        user = myac.get_login_user(8)  # pass user id
+        user = myac.get_login_user(3)  # pass user id
         user_form = us_forms.UserForm(
             # email=user.email,
             first_name=user.first_name,
