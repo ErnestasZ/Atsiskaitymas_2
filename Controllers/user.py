@@ -1,6 +1,6 @@
 from Models import User, Loyalty
 from Misc.my_logger import my_logger
-from datetime import datetime
+from datetime import datetime, timezone
 
 def get_users(db) -> list[User]:
     return db.session.query(User).all()
@@ -22,7 +22,8 @@ def verify_user_token(db, token: str) -> bool | str:
     try:
         user = User.query.filter_by(token=token).first()
         if user:
-            user.veryfied_at = datetime.now(datetime.timezone.utc)
+            user.verified_at = datetime.now(timezone.utc)
+            db.session.flush()
             db.session.commit()
             my_logger.info(f'verification of token {token} success')
             return True
@@ -50,6 +51,7 @@ def update_user(db, user: User) -> bool | str:
         for key, value in user.__dict__.items():
             if not key.startswith('_'):
                 setattr(existing_user, key, value)
+        db.session.flush()
         db.session.commit()
         my_logger.info(f'update {user.id} success')
         return True

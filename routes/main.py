@@ -134,7 +134,7 @@ def register_main_routes(app, db):
                 last_name=last_name,
                 email=email,
                 token='',  # You may want to set a token for email verification
-                verified_at=datetime.now(),  # You can make this False until email is verified
+                verified_at=None,
                 is_admin=False,
                 is_deleted=False,
                 blocked_until=None,
@@ -154,6 +154,11 @@ def register_main_routes(app, db):
         return redirect(url_for('main.login'))
     
 
+    @main.route('/registration_success', methods=['GET', 'POST'])
+    def registration_success():
+        return render_template('registration_success.html')
+
+
     @main.route('/logout')
     def logout():
         flash('You have been logged out.', 'main info')
@@ -162,10 +167,9 @@ def register_main_routes(app, db):
         return redirect(url_for('main.index'))
 
 
-
     @app.route('/verify-email/<token>')
     def verify_email(token):
-        r = verify_user_token(token)
+        r = verify_user_token(db, token)
         if r is True:
             flash('Your email has been verified!', 'success')
             return redirect(url_for('main.login'))
