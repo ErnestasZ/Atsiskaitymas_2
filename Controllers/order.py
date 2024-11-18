@@ -1,6 +1,6 @@
 from Models import Order
 
-def create_order(db, order:Order) -> bool|str:
+def create_order(db, order:Order) -> bool | str:
     """
     Returns [bool]True on success 
     Returns [str] error message on fail

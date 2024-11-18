@@ -1,13 +1,17 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, g
 from flask_login import login_user
 from werkzeug.security import check_password_hash
-from Models.user import User
-from Models.product import Product
-from Models.cart_product import Cart_product
 from datetime import datetime, timedelta
-from Controllers.user import create_user, get_user_by_email, update_user
-from Controllers.product import get_average_rating, get_reviews, get_products, get_sorting_option
-from Controllers.cart import get_session_id
+
+from Models import *
+from Controllers import *
+# All imports are implemented here, no need to import a specific function!
+# Add module imports similar to the above.
+
+# from Models.user import User
+# from Models.product import Product
+# from Controllers.user import create_user, get_user_by_email, update_user
+# from Controllers.product import get_average_rating, get_reviews, get_products
 
 main = Blueprint('main', __name__, url_prefix='/')
 

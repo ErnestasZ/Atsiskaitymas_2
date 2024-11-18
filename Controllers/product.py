@@ -1,4 +1,28 @@
+from sqlalchemy import select, not_, and_, or_
 from Models import Product, Review, Order_item
+from Controllers import db_provider as dbp
+
+session = dbp.db.session
+
+def get_product_by_id(id: int) -> (Product | None):
+    stmt = select(Product).where(Product.id == id)
+    return session.execute(stmt).scalars().first()
+
+def get_all_products() -> list[Product]:
+    return session.execute(select(Product)).scalars().all()
+
+def update_product(id: int = None, product: Product = None, **kwargs) -> (Product | Exception):
+    if not product and id:
+        product = get_product_by_id(id)
+    
+    if isinstance(product, Product):
+        result = dbp.push_db_record(product, **kwargs)
+    else:
+        result = ValueError("Unable to update a non-existent database record!")
+    return result
+
+def add_product(**kwargs) -> (Product | Exception):
+    return dbp.push_db_record(Product, **kwargs)
 
 def get_average_rating(product):
     # Calculate total rating by summing al review ratings product.order_items
