@@ -1,45 +1,48 @@
-from sqlalchemy.orm import Session
-from Models import User
+from Models import User, Loyalty
+from Misc.my_logger import my_logger
+
+def get_users(db) -> list[User]:
+    return db.session.query(User).all()
 
 
-def get_users(db: Session) -> list[User]:
-    return db.query(User).all()
-
-
-def create_user(db: Session, user: User) -> bool | str:
+def create_user(db, user: User) -> bool | str:
     try:
-        db.add(user)
-        db.commit()
+        db.session.add(user)
+        db.session.commit()
+        my_logger.info(f'create {user.id} success')
         return True
     except Exception as e:
-        db.rollback()
+        db.session.rollback()
+        my_logger.info(f'create {user.id} failed: {str(e)}')
         return str(e)
 
 
-def get_user_by_id(db: Session, user_id: int) -> User:
-    return User.query.filter_by(id=user_id).first()
+def get_user_by_id(db, user_id: int) -> User:
+    return db.session.query(User).filter_by(id=user_id).first()
 
 
-def get_user_by_email(db: Session, user_email: str) -> User:
-    return User.query.filter_by(email=user_email).first()
+def get_user_by_email(db, user_email: str) -> User:
+    return db.session.query(User).filter_by(email=user_email).first()
 
 
-def update_user(db: Session, user: User) -> bool | str:
+def update_user(db, user: User) -> bool | str:
     try:
-        existing_user = db.query(User).filter(User.id == user.id).first()
+        existing_user = db.session.query(User).filter(User.id == user.id).first()
         if not existing_user:
             return 'User not found'
         for key, value in user.__dict__.items():
             if not key.startswith('_'):
                 setattr(existing_user, key, value)
-        db.commit()
+        db.session.commit()
+        my_logger.info(f'update {user.id} success')
         return True
     except Exception as e:
-        db.rollback()
+        db.session.rollback()
+        my_logger.info(f'update {user.id} failed: {str(e)}')
         return str(e)
 
 
-def add_to_wallet(db: Session, user_id:int, amount:float) -> bool | str:
+def add_to_wallet(db, user_id:int, amount:float) -> bool | str:
     """
     Returns [bool]True if added successfully 
     Returns [str] error message if add failed
@@ -47,5 +50,5 @@ def add_to_wallet(db: Session, user_id:int, amount:float) -> bool | str:
     ...
 
 
-def get_user_balance(db: Session, user_id:int) -> float:
+def get_user_balance(db, user_id:int) -> float:
     ...

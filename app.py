@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from Misc.my_logger import my_logger
+# from flask_login import LoginManager
 
 db = SQLAlchemy()
 
@@ -26,4 +27,11 @@ def create_app():
 
     migrate = Migrate(app, db)
 
+    # login_manager = LoginManager()
+    # login_manager.init_app(app)
+
+    # @login_manager.user_loader
+    # def load_user(user_id):
+    #     return User.get(user_id)
+    
     return app
