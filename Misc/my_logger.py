@@ -1,4 +1,5 @@
 import logging
+from functools import wraps
 
 # nustatom level
 
@@ -25,3 +26,16 @@ my_logger.addHandler(stream_handler)
 # my_logger.debug('debug msg')
 # my_logger.info('info msg')
 # my_logger.error('error msg')
+
+def log_crud_operation(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            my_logger.info(f'Calling {func.__name__} with arguments: {args}, {kwargs}')
+            result = func(*args, **kwargs)
+            my_logger.info(f'{func.__name__} completed successfully')
+            return result
+        except Exception as e:
+            my_logger.error(f'{func.__name__} failed with error: {str(e)}')
+            raise  # Re-raise the exception after logging
+    return wrapper

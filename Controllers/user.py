@@ -1,47 +1,54 @@
 from Models import User, Loyalty
-from Misc.my_logger import my_logger
-from datetime import datetime
+from Misc.my_logger import my_logger, log_crud_operation
+from datetime import datetime, timezone
 
+@log_crud_operation
 def get_users(db) -> list[User]:
     return db.session.query(User).all()
 
 
+@log_crud_operation
 def create_user(db, user: User) -> bool | str:
     try:
         db.session.add(user)
         db.session.commit()
-        my_logger.info(f'create {user.id} success')
+        # my_logger.info(f'create {user.id} success')
         return True
     except Exception as e:
         db.session.rollback()
-        my_logger.info(f'create {user.id} failed: {str(e)}')
+        # my_logger.info(f'create {user.id} failed: {str(e)}')
         return str(e)
 
 
+@log_crud_operation
 def verify_user_token(db, token: str) -> bool | str:
     try:
         user = User.query.filter_by(token=token).first()
         if user:
-            user.veryfied_at = datetime.now(datetime.timezone.utc)
+            user.verified_at = datetime.now(timezone.utc)
+            db.session.flush()
             db.session.commit()
-            my_logger.info(f'verification of token {token} success')
+            # my_logger.info(f'verification of token {token} success')
             return True
-        my_logger.info(f'verification of token {token} failed')
+        # my_logger.info(f'verification of token {token} failed')
         return 'Invalid or expired token!'
     except Exception as e:
         db.session.rollback()
-        my_logger.info(f'verification of token {token} failed: {str(e)}')
+        # my_logger.info(f'verification of token {token} failed: {str(e)}')
         return str(e)
 
 
+@log_crud_operation
 def get_user_by_id(db, user_id: int) -> User:
     return db.session.query(User).filter_by(id=user_id).first()
 
 
+@log_crud_operation
 def get_user_by_email(db, user_email: str) -> User:
     return db.session.query(User).filter_by(email=user_email).first()
 
 
+@log_crud_operation
 def update_user(db, user: User) -> bool | str:
     try:
         existing_user = db.session.query(User).filter(User.id == user.id).first()
@@ -50,15 +57,17 @@ def update_user(db, user: User) -> bool | str:
         for key, value in user.__dict__.items():
             if not key.startswith('_'):
                 setattr(existing_user, key, value)
+        db.session.flush()
         db.session.commit()
-        my_logger.info(f'update {user.id} success')
+        # my_logger.info(f'update {user.id} success')
         return True
     except Exception as e:
         db.session.rollback()
-        my_logger.info(f'update {user.id} failed: {str(e)}')
+        # my_logger.info(f'update {user.id} failed: {str(e)}')
         return str(e)
 
 
+@log_crud_operation
 def add_to_wallet(db, user_id:int, amount:float) -> bool | str:
     """
     Returns [bool]True if added successfully 
@@ -67,5 +76,6 @@ def add_to_wallet(db, user_id:int, amount:float) -> bool | str:
     ...
 
 
+@log_crud_operation
 def get_user_balance(db, user_id:int) -> float:
     ...

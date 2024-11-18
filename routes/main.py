@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_user
 from werkzeug.security import check_password_hash
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, login_required, current_user
 from Models.user import User
 from datetime import datetime, timedelta
 
@@ -22,7 +22,7 @@ import Services.Forms.user_form as us_forms
 import Services.Forms.dashboard as dash_forms
 from flask_login import LoginManager
 from Controllers.user import create_user, get_user_by_email, update_user, verify_user_token
-from flask_mail import Mail
+# from flask_mail import Mail
 from Services.mail import send_verification_email
 
 main = Blueprint('main', __name__, url_prefix='/')
@@ -35,8 +35,9 @@ def register_main_routes(app, db):
         return render_template('404.html'), 404
     login_manager = LoginManager()
     login_manager.init_app(app)
+    login_manager.login_view = "main.login"
 
-    mail = Mail(app)
+    # mail = Mail(app)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -88,12 +89,12 @@ def register_main_routes(app, db):
                     flash(f'You are blocked until {
                           user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
                 if user.verified_at is None:
-                    # [!] pakartotinai issiusti verifikavimo e-mail
+                    # pakartotinai issiunciam verifikavimo e-mail
+                    send_verification_email(user)
                     flash(
                         f'Your e-mail is not verified. Check your e-mail anf follow the link.', 'warning')
                 elif (not user.blocked_until is None) and (user.blocked_until >= datetime.now()):
-                    flash(f'You are blocked until {
-                          user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
+                    flash(f'You are blocked until {user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
                 else:
                     if user.check_password(password):
                         login_user(user)
@@ -136,7 +137,7 @@ def register_main_routes(app, db):
                 last_name=last_name,
                 email=email,
                 token='',  # You may want to set a token for email verification
-                verified_at=datetime.now(),  # You can make this False until email is verified
+                verified_at=None,
                 is_admin=False,
                 is_deleted=False,
                 blocked_until=None,
@@ -150,21 +151,27 @@ def register_main_routes(app, db):
                 return redirect(url_for('main.login'))
             else:
                 # send user verification email
-                send_verification_email(mail, new_user)
+                send_verification_email(new_user)
                 flash('Your account has been created successfully!', 'success')
                 return redirect(url_for('main.registration_success'))
         return redirect(url_for('main.login'))
+    
+
+    @main.route('/registration_success', methods=['GET', 'POST'])
+    def registration_success():
+        return render_template('registration_success.html')
+
 
     @main.route('/logout')
     def logout():
-        flash('You have been logged out.', 'main info')
         logout_user()
         flash('You have been logged out.', 'info')
         return redirect(url_for('main.index'))
 
+
     @app.route('/verify-email/<token>')
     def verify_email(token):
-        r = verify_user_token(token)
+        r = verify_user_token(db, token)
         if r is True:
             flash('Your email has been verified!', 'success')
             return redirect(url_for('main.login'))
@@ -177,20 +184,24 @@ def register_main_routes(app, db):
     #     return render_template('lost_password.html')
 
     @main.route('/my-account')
+    @login_required
     def my_acc():
         return render_template('my_account.html')
 
     @main.route('/my-account/orders')
+    @login_required
     def my_orders():
-        orders, total = myac.get_user_orders_by_id(3)  # pass user id
+        orders, total = myac.get_user_orders_by_id(current_user.id)  # pass user id
         return render_template('orders.html', orders=orders, total=total)
 
     @main.route('/my-account/orders/<int:order_id>')
+    @login_required
     def my_order_items(order_id):
         items, order, _status = ador.get_order_items(order_id)
         return render_template('order_items.html', order=order, items=items)
 
     @main.route('/my-account/orders/<int:order_id>/<int:item_id>', methods=['POST', 'GET'])
+    @login_required
     def my_item_review(order_id, item_id):
         review, order = ador.get_item_review(item_id)
         form = dash_forms.ReviewForm(
@@ -218,8 +229,9 @@ def register_main_routes(app, db):
         return redirect(url_for('main.my_item_review', order_id=order_id, item_id=item_id))
 
     @main.route('/my-account/balance', methods=['GET', 'POST'])
+    @login_required    
     def my_balance():
-        user_id = 3  # pass user id
+        user_id = current_user.id
         balance = myac.get_user_balance(user_id)
         form = us_forms.BalanceForm()
         if form.validate_on_submit():
@@ -229,8 +241,9 @@ def register_main_routes(app, db):
         return render_template('balance.html', balance=balance, form=form)
 
     @main.route('/my-account/user-details', methods=['GET', 'POST'])
+    @login_required
     def my_details():
-        user = myac.get_login_user(3)  # pass user id
+        user = myac.get_login_user(current_user.id)  # pass user id
         user_form = us_forms.UserForm(
             # email=user.email,
             first_name=user.first_name,
@@ -304,6 +317,7 @@ def register_main_routes(app, db):
             session_id=session_id).scalar() or 0
 
     @main.route('/checkout')
+    @login_required
     def checkout():
         return render_template('checkout.html')
 

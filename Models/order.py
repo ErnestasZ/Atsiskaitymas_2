@@ -11,4 +11,4 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     # relations
     user = db.relationship('User', back_populates='orders')
-    order_items = db.relationship('Order_item', back_populates='order')
+    order_items = db.relationship('Order_item', back_populates='order', cascade="all, delete")
