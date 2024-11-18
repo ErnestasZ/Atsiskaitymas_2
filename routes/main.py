@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_user
 from werkzeug.security import check_password_hash
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, login_required, current_user
 from Models.user import User
 from datetime import datetime, timedelta
 
@@ -35,6 +35,7 @@ def register_main_routes(app, db):
         return render_template('404.html'), 404
     login_manager = LoginManager()
     login_manager.init_app(app)
+    login_manager.login_view = "main.login"
 
     # mail = Mail(app)
 
@@ -183,20 +184,24 @@ def register_main_routes(app, db):
     #     return render_template('lost_password.html')
 
     @main.route('/my-account')
+    @login_required
     def my_acc():
         return render_template('my_account.html')
 
     @main.route('/my-account/orders')
+    @login_required
     def my_orders():
-        orders, total = myac.get_user_orders_by_id(3)  # pass user id
+        orders, total = myac.get_user_orders_by_id(current_user.id)  # pass user id
         return render_template('orders.html', orders=orders, total=total)
 
     @main.route('/my-account/orders/<int:order_id>')
+    @login_required
     def my_order_items(order_id):
         items, order, _status = ador.get_order_items(order_id)
         return render_template('order_items.html', order=order, items=items)
 
     @main.route('/my-account/orders/<int:order_id>/<int:item_id>', methods=['POST', 'GET'])
+    @login_required
     def my_item_review(order_id, item_id):
         review, order = ador.get_item_review(item_id)
         form = dash_forms.ReviewForm(
@@ -224,8 +229,9 @@ def register_main_routes(app, db):
         return redirect(url_for('main.my_item_review', order_id=order_id, item_id=item_id))
 
     @main.route('/my-account/balance', methods=['GET', 'POST'])
+    @login_required    
     def my_balance():
-        user_id = 3  # pass user id
+        user_id = current_user.id
         balance = myac.get_user_balance(user_id)
         form = us_forms.BalanceForm()
         if form.validate_on_submit():
@@ -235,8 +241,9 @@ def register_main_routes(app, db):
         return render_template('balance.html', balance=balance, form=form)
 
     @main.route('/my-account/user-details', methods=['GET', 'POST'])
+    @login_required
     def my_details():
-        user = myac.get_login_user(3)  # pass user id
+        user = myac.get_login_user(current_user.id)  # pass user id
         user_form = us_forms.UserForm(
             # email=user.email,
             first_name=user.first_name,
@@ -310,6 +317,7 @@ def register_main_routes(app, db):
             session_id=session_id).scalar() or 0
 
     @main.route('/checkout')
+    @login_required
     def checkout():
         return render_template('checkout.html')
 
