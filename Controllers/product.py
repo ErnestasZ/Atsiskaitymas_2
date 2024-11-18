@@ -35,7 +35,9 @@ def get_average_rating(product):
 def get_reviews(product):
     reviews = []
     for order_item in product.order_items:
-        reviews.extend(order_item.reviews)
+        for review in order_item.reviews:
+            review.user = order_item.order.user 
+            reviews.append(review)
     return reviews
 
 
