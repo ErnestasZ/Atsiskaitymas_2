@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 import Controllers.admin_order as ar
 import Services.Forms.dashboard as forms
 # from Services.forms import testas
-order = Blueprint('order', __name__, url_prefix='/admin/order')
+order = Blueprint('admin_order', __name__, url_prefix='/dashboard/admin/order')
 
 
 def register_order_routes(app, db):
@@ -25,7 +25,7 @@ def register_order_routes(app, db):
                 ar.check_loyalty(order.user_id)
             except Exception as e:
                 flash(f"Loyalty check: {e}", 'admin danger')
-            return redirect(url_for('order.order_items', order_id=order_id))
+            return redirect(url_for('admin_order.order_items', order_id=order_id))
 
         status_form.status.data = order.status
 
@@ -46,7 +46,7 @@ def register_order_routes(app, db):
         if form.validate_on_submit():
             ar.set_review(item_id, form.rating.data, form.content.data)
             flash('Review updated successfully.', 'admin success')
-            return redirect(url_for('order.item_review', order_id=order_id, item_id=item_id))
+            return redirect(url_for('admin_order.item_review', order_id=order_id, item_id=item_id))
 
         return render_template('admin/order/item_review.html', form=form, review=review, order=order)
 
@@ -54,6 +54,6 @@ def register_order_routes(app, db):
     def delete_review(order_id, item_id, review_id):
         ar.remove_review(review_id)
         flash('Review deleted successfully.', 'admin success')
-        return redirect(url_for('order.item_review', order_id=order_id, item_id=item_id))
+        return redirect(url_for('admin_order.item_review', order_id=order_id, item_id=item_id))
 
     app.register_blueprint(order)

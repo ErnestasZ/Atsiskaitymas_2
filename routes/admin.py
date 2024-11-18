@@ -22,6 +22,5 @@ def register_admin_routes(app, db):
     def index():
         return render_template('admin/indexes.html')
 
-    adminF.add_view(ModelView(User, db.session))
     # register blueprint
     app.register_blueprint(admin)

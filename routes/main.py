@@ -106,7 +106,7 @@ def register_main_routes(app, db):
 
     @main.route('/my-account/orders')
     def my_orders():
-        orders, total = myac.get_user_orders_by_id(5)  # pass user id
+        orders, total = myac.get_user_orders_by_id(8)  # pass user id
         return render_template('orders.html', orders=orders, total=total)
 
     @main.route('/my-account/orders/<int:order_id>')
@@ -143,7 +143,7 @@ def register_main_routes(app, db):
 
     @main.route('/my-account/balance', methods=['GET', 'POST'])
     def my_balance():
-        user_id = 5  # pass user id
+        user_id = 8  # pass user id
         balance = myac.get_user_balance(user_id)
         form = us_forms.BalanceForm()
         if form.validate_on_submit():
@@ -154,7 +154,7 @@ def register_main_routes(app, db):
 
     @main.route('/my-account/user-details', methods=['GET', 'POST'])
     def my_details():
-        user = myac.get_login_user(5)  # pass user id
+        user = myac.get_login_user(8)  # pass user id
         user_form = us_forms.UserForm(
             # email=user.email,
             first_name=user.first_name,
@@ -170,7 +170,7 @@ def register_main_routes(app, db):
                                user_form=user_form
                                )
 
-        return render_template('user_details.html')
+        # return render_template('user_details.html')
 
     @main.route('/add_to_cart/<int:product_id>', methods=['POST'])
     def add_to_cart(product_id):
