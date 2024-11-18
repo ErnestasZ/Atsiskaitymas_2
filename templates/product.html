@@ -1,0 +1,104 @@
+{% extends "/shared/main_layout.html" %}
+{% block title %} {{ product.title }} {% endblock %}
+
+{% block content %}
+<section class="container">
+    <div class="row product-summary mt-5">
+        <div class="col-md-6">
+            <div class="product-img">
+                <img src="{{ product.image }}" alt="{{ product.title }}">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h2>{{ product.title }}</h2>
+            <div class="product-rating mb-2">
+                <div class="rating">{{ average_rating or 'No ratings yet' }}</div>
+                {% if average_rating %}
+                    <div class="rating-stars">
+                        {% for i in range(1, 6) %}
+                            {% if average_rating >= i %}
+                                <i class="fa fa-star"></i>
+                            {% elif average_rating > (i - 1) and average_rating < i %}
+                                <i class="fa fa-star-half-o"></i>
+                            {% else %}
+                                <i class="fa fa-star-o"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="rating-stars">
+                        <!-- Display 5 empty stars if no rating -->
+                        <i class="fa fa-star-o"></i>
+                        <i class="fa fa-star-o"></i>
+                        <i class="fa fa-star-o"></i>
+                        <i class="fa fa-star-o"></i>
+                        <i class="fa fa-star-o"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="product-stock mb-2">
+                {% if product.stock > 0 %}
+                    In Stock
+                {% else %}
+                    <span>Out of Stock</span>
+                {% endif %}
+            </div>
+            <div class="mb-3">{{ product.description }}</div>
+            <div class="product-price mb-3">{{ product.price }} €</div>
+                {% if product.stock > 0 %}
+                    <form id="add-to-cart-form-{{ product.id }}" class="product-add-to-car" action="{{ url_for('main.add_to_cart', product_id=product.id) }}" method="post" onsubmit="addToCart(event, '{{ product.id }}')">
+                        <input type="number" class="form-control" name="qty" value="1" min="1" required/>
+                        <button type="submit" class="btn btn-ss"><i class="fas fa-cart-plus"></i> Add to cart</button>
+                    </form>
+                    {% else %}
+                    <a href="{{ url_for('main.index') }}" class="btn btn-ss"><i class="fas fa-chevron-left"></i> Back to Shop</a>
+                {% endif %}
+        </div>  
+    </div>
+    <div class="product-reviews mt-5">
+        <h4 class="mb-3">Reviews</h4>
+        {% if reviews|length == 0 %}
+        <p>No reviews yet</p>
+        {% else %}
+            {% for review in reviews %}
+            <div class="review-box mb-3">
+                <div class="product-rating mb-1">
+                    {% if review.rating %}
+                        <div class="rating-stars">
+                            {% for i in range(1, 6) %}
+                                {% if review.rating >= i %}
+                                    <!-- Full star -->
+                                    <i class="fa fa-star"></i>
+                                {% elif review.rating > (i - 1) and review.rating < i %}
+                                    <!-- Half star -->
+                                    <i class="fa fa-star-half-o"></i>
+                                {% else %}
+                                    <!-- Empty star -->
+                                    <i class="fa fa-star-o"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="rating-stars">
+                            <!-- Display 5 empty stars if no rating -->
+                            <i class="fa fa-star-o"></i>
+                            <i class="fa fa-star-o"></i>
+                            <i class="fa fa-star-o"></i>
+                            <i class="fa fa-star-o"></i>
+                            <i class="fa fa-star-o"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="review-author mb-3">
+                    <small>By {{ review.user.first_name }}</small>
+                </div>
+                <div class="review-content">
+                    {{ review.content }}
+                </div>
+            </div>
+            {% endfor %}
+    {% endif %}
+    </div>
+      
+</section>
+{% endblock %}
