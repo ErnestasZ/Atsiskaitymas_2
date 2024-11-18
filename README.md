@@ -2,6 +2,11 @@ python -m venv .venv <!--  susikurti virtual evinronment -->
 Use venv environment .venv
 
 <!-- After clone install dependencies  -->
+<!-- generate requirements -->
+
+pip3 freeze > requirements.txt
+
+<!-- update requirements  -->
 
 pip install -r requirements.txt
 

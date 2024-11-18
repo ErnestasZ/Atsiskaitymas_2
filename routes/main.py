@@ -1,6 +1,9 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, g
 from flask_login import login_user
 from werkzeug.security import check_password_hash
+from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask_login import login_user, logout_user, current_user
+from Models.user import User
 from datetime import datetime, timedelta
 
 from Models import *
@@ -17,6 +20,11 @@ import Controllers.main_myaccount as myac
 import Controllers.admin_order as ador
 import Services.Forms.user_form as us_forms
 import Services.Forms.dashboard as dash_forms
+from flask_login import LoginManager
+from Controllers.user import create_user, get_user_by_email, update_user, verify_user_token
+from flask_mail import Mail
+from Services.mail import send_verification_email
+
 main = Blueprint('main', __name__, url_prefix='/')
 
 
@@ -25,6 +33,14 @@ def register_main_routes(app, db):
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template('404.html'), 404
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+
+    mail = Mail(app)
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
     @main.route('/')
     def index():
@@ -58,15 +74,24 @@ def register_main_routes(app, db):
 
     @main.route('/login', methods=['GET', 'POST'])
     def login():
+        if current_user.is_authenticated:
+            return redirect(url_for('main.index'))
         if request.method == 'POST':
             # Get email and password from form
-            user_login = request.form.get('email')
-            password = request.form.get('password')
+            user_login = request.form.get('login_email')
+            password = request.form.get('login_password')
             # Find the user by email
             user = get_user_by_email(db, user_login)
             # Check if user exists and password is correct
             if user and not user.is_deleted:
-                if user.blocked_until >= datetime.datetime.now():
+                if not (user.blocked_until is None) and user.blocked_until >= datetime.now():
+                    flash(f'You are blocked until {
+                          user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
+                if user.verified_at is None:
+                    # [!] pakartotinai issiusti verifikavimo e-mail
+                    flash(
+                        f'Your e-mail is not verified. Check your e-mail anf follow the link.', 'warning')
+                elif (not user.blocked_until is None) and (user.blocked_until >= datetime.now()):
                     flash(f'You are blocked until {
                           user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
                 else:
@@ -75,12 +100,12 @@ def register_main_routes(app, db):
                         user.blocked_until = None
                         user.failed_count = 0
                         update_user(db, user)
-                        return redirect(url_for('index'))
+                        return redirect(url_for('main.index'))
                     user.failed_count += 1
                     if user.failed_count >= 4:
-                        user.blocked_until == datetime.datetime.now() + timedelta(hours=1)
+                        user.blocked_until == datetime.now() + timedelta(hours=1)
                     elif user.failed_count >= 3:
-                        user.blocked_until >= datetime.datetime.now() + timedelta(minutes=5)
+                        user.blocked_until >= datetime.now() + timedelta(minutes=5)
                     update_user(db, user)
                     flash('Invalid email or password. Please try again.', 'danger')
             else:
@@ -89,12 +114,63 @@ def register_main_routes(app, db):
 
     @main.route('/register', methods=['GET', 'POST'])
     def register():
-        return render_template('login.html')
+        if request.method == 'POST':
+            # Get user input from the registration form
+            first_name = request.form['register_first_name']
+            last_name = request.form['register_last_name']
+            email = request.form['register_email']
+            password = request.form['register_password']
+            confirm_password = request.form['register_confirm_password']
+            # validations
+            if password != confirm_password:
+                flash('Passwords do not match.', 'danger')
+                return redirect(url_for('main.login'))
+            existing_user = get_user_by_email(db, email)
+            if existing_user:
+                flash(
+                    'Email is already registered. Please use a different email.', 'danger')
+                return redirect(url_for('main.login'))
+            # create
+            new_user = User(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                token='',  # You may want to set a token for email verification
+                verified_at=datetime.now(),  # You can make this False until email is verified
+                is_admin=False,
+                is_deleted=False,
+                blocked_until=None,
+                failed_count=0,
+                loyalty_id=None
+            )
+            new_user.set_password(password)
+            result = create_user(db, new_user)
+            if result is not True:
+                flash(result, 'danger')
+                return redirect(url_for('main.login'))
+            else:
+                # send user verification email
+                send_verification_email(mail, new_user)
+                flash('Your account has been created successfully!', 'success')
+                return redirect(url_for('main.registration_success'))
+        return redirect(url_for('main.login'))
 
     @main.route('/logout')
     def logout():
         flash('You have been logged out.', 'main info')
+        logout_user()
+        flash('You have been logged out.', 'info')
         return redirect(url_for('main.index'))
+
+    @app.route('/verify-email/<token>')
+    def verify_email(token):
+        r = verify_user_token(token)
+        if r is True:
+            flash('Your email has been verified!', 'success')
+            return redirect(url_for('main.login'))
+        else:
+            flash(r, 'danger')
+            return redirect(url_for('main.index'))
 
     # @main.route('/lost-password', methods=['GET', 'POST'])
     # def lost_password():
@@ -106,7 +182,7 @@ def register_main_routes(app, db):
 
     @main.route('/my-account/orders')
     def my_orders():
-        orders, total = myac.get_user_orders_by_id(8)  # pass user id
+        orders, total = myac.get_user_orders_by_id(3)  # pass user id
         return render_template('orders.html', orders=orders, total=total)
 
     @main.route('/my-account/orders/<int:order_id>')
@@ -143,7 +219,7 @@ def register_main_routes(app, db):
 
     @main.route('/my-account/balance', methods=['GET', 'POST'])
     def my_balance():
-        user_id = 8  # pass user id
+        user_id = 3  # pass user id
         balance = myac.get_user_balance(user_id)
         form = us_forms.BalanceForm()
         if form.validate_on_submit():
@@ -154,7 +230,7 @@ def register_main_routes(app, db):
 
     @main.route('/my-account/user-details', methods=['GET', 'POST'])
     def my_details():
-        user = myac.get_login_user(8)  # pass user id
+        user = myac.get_login_user(3)  # pass user id
         user_form = us_forms.UserForm(
             # email=user.email,
             first_name=user.first_name,

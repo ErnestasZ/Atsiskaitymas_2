@@ -1,4 +1,5 @@
 from Models import User, Product, Order, Wallet_transaction, Order_item, Review
+from Controllers.user import create_user
 
 from app import db, create_app
 from faker import Faker
@@ -16,18 +17,30 @@ def get_random_date_within_week():
     return random_date
 
 
+def get_image_link_from_txt():
+    with open("Misc/links.txt", "r") as file:
+        images = file.read().splitlines()
+    return images
+
+
+image_link_list = get_image_link_from_txt()
+password = 'secret123'
+
+
 def populate_db():
     admin = User.query.filter_by(email="admin@admin.com").first()
     if not admin:
         admin = User(
             first_name="Admin",
-            last_name="User",
+            last_name="",
             email="admin@admin.com",
-            password="secret123",
-            is_admin=True
+            is_deleted=False,
+            verified_at = datetime.now(),
+            is_admin=True,
+            failed_count=0
         )
-        db.session.add(admin)
-        db.session.commit()
+        admin.set_password('123')
+        create_user(db, admin)
         print("Admin user created.")
     else:
         print("Admin user already exists.")
@@ -37,14 +50,18 @@ def populate_db():
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             email=fake.unique.email(),
-            password=fake.password(),
-            is_admin=False
+            is_deleted=False,
+            verified_at = datetime.now(),
+            is_admin=False,
+            failed_count=0
         )
+        user.set_password(user.first_name[:3])
         db.session.add(user)
 
     for _ in range(30):
         product = Product(
             title=fake.word().capitalize(),
+            image=random.choice(image_link_list),
             description=fake.text(),
             price=round(random.uniform(10, 100), 2),
             stock=random.randint(1, 100)

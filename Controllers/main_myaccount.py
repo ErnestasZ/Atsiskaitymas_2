@@ -55,19 +55,34 @@ def get_user_orders_by_id(user_id):
 
 
 def get_user_balance(user_id):
+    """_summary_
+    get user balance by user id
+    Args:
+        user_id (int): _description_
+
+    Returns:
+        _type_: _description_
+    """
     wallet_sum = db.session.execute(
         select(
-            Wallet_transaction.user_id,
             func.sum(Wallet_transaction.amount).label('sum_amount')
-        ).outerjoin(User.wallet_transactions)
-        .where(Wallet_transaction.user_id == user_id)
-        .group_by(Wallet_transaction.user_id)
-    ).first()
+        ).where(Wallet_transaction.user_id == user_id)
+    ).scalar() or 0
+
+    # wallet_sum = db.session.execute(
+    #     select(
+    #         Wallet_transaction.user_id,
+    #         func.sum(Wallet_transaction.amount).label('sum_amount')
+    #     ).outerjoin(User.wallet_transactions)
+    #     .where(Wallet_transaction.user_id == user_id)
+    #     .group_by(Wallet_transaction.user_id)
+    # ).first()
 
     # only where order status is Pending or Done
     expenses = get_user_expenses(user_id)
+    expense_amount = getattr(expenses, 'expence_amount', 0)
 
-    return round(wallet_sum.sum_amount - expenses.expence_amount, 2)
+    return round(wallet_sum - expense_amount, 2)
 
 
 def add_balance(user_id, amount):
