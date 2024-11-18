@@ -159,15 +159,16 @@ def check_loyalty(user_id):
     total_amounts = db.session.execute(
         select(
             Order.user_id,
-            func.sum(Order_item.total_price).label('expense_amount'),
-            func.count(Order_item.id).label('order_count')
+            func.sum(Order.total_amount).label('expense_amount'),
+            func.count(Order.id).label('order_count')
         ).where(Order.user_id == user_id, Order.status.in_(['Pending', 'Done']))
         .group_by(Order.user_id)
     ).first()
-
+    print('total amount', total_amounts)
     # check by constants LOYALTIES
     if total_amounts.expense_amount >= LOYALTIES['amount'] and total_amounts.order_count >= LOYALTIES['orders']:
         # loyalty = Loyalty.query.filter_by(discout=LOYALTIES['percents']).first()
+
         loyalty = Loyalty.query.first()
         if loyalty:
             users_with_loyalty.loyalty_id = loyalty.id
