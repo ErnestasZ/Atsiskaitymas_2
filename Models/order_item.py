@@ -1,5 +1,6 @@
 from app import db
 
+
 class Order_item(db.Model):
     __tablename__ = 'order_items'
     id = db.Column(db.Integer, primary_key=True)

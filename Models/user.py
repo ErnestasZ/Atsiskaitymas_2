@@ -9,11 +9,11 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String, nullable=False)
     last_name = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, unique=True, nullable=False)
+    email = db.Column(db.String, nullable=False)
     password = db.Column(db.String(64), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     token = db.Column(db.String)
-    veryfied_at = db.Column(db.DateTime) # [!] turetu buti verified_at
+    verified_at = db.Column(db.DateTime)
     is_deleted = db.Column(db.Boolean, default=False)
     blocked_until = db.Column(db.DateTime)
     failed_count = db.Column(db.Integer)

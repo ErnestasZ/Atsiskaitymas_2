@@ -1,0 +1,75 @@
+<!--  cia yra dashboard  -->
+{%extends "/shared/admin_layout.html" %}
+{% block title %} Admin Dashboard {% endblock %}
+
+{% block content %}
+
+
+<div class="mt-4">
+    <h1>Sales by Orders</h1>
+
+    <!-- Date Range Form -->
+    <form method="GET" action="{{url_for('dashboard.orders')}}" class="row g-3">
+        <div class="col-md-5">
+            <label for="start_date" class="form-label">Start Date:</label>
+            <input type="date" name="start_date" class="form-control" value="{{ start_date if start_date else '' }}">
+        </div>
+
+        <div class="col-md-5">
+            <label for="end_date" class="form-label">End Date:</label>
+            <input type="date" name="end_date" class="form-control" value="{{ end_date if end_date else '' }}">
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <!-- Clear Filter Button -->
+    <div class="mt-2">
+        <a href="{{url_for('dashboard.orders')}}" class="btn btn-secondary">Clear
+            Filters</a>
+    </div>
+
+    <!-- Display Date Range -->
+    <p class="mt-3">
+        <strong>Start Date:</strong> {{ start_date if start_date else 'Not specified' }}<br>
+        <strong>End Date:</strong> {{ end_date if end_date else 'Not specified' }}
+    </p>
+
+    <!-- Display the orders table if there are orders -->
+    {% if orders %}
+    <h2>Orders List:</h2>
+    <p>
+        <strong>total sale EUR:</strong> {{ total }}
+    </p>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Created At</th>
+                <th>Total Amount</th>
+                <th>Email</th>
+                <th>Total Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.order_id }}</td>
+                <td>{{ order.created_at }}</td>
+                <td>{{ order.total_amount }}</td>
+                <td>{{ order.email }}</td>
+                <td>{{ order.total_qty }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No orders found for the selected date range.</p>
+    {% endif %}
+</div>
+
+
+
+{% endblock %}

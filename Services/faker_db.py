@@ -2,10 +2,18 @@ from Models import User, Product, Order, Wallet_transaction, Order_item, Review
 
 from app import db, create_app
 from faker import Faker
+from datetime import datetime, timedelta
 import random
 
 
 fake = Faker()
+
+
+def get_random_date_within_week():
+    now = datetime.now()
+    weeks_ago = now - timedelta(weeks=16)
+    random_date = weeks_ago + (now - weeks_ago) * random.random()
+    return random_date
 
 
 def populate_db():
@@ -50,10 +58,12 @@ def populate_db():
     products = {product.id: product for product in Product.query.all()}
 
     for _ in range(10):
+        created_at = get_random_date_within_week()
         order = Order(
             user_id=random.choice(user_ids),
             status="Pending",
-            total_amount=0
+            total_amount=0,
+            created_at=created_at
         )
         db.session.add(order)
         db.session.flush()
@@ -71,7 +81,8 @@ def populate_db():
                 qty=qty,
                 product_name=product.title,
                 unit_price=unit_price,
-                total_price=total_price
+                total_price=total_price,
+                created_at=created_at
             )
             db.session.add(order_item)
             db.session.flush()
