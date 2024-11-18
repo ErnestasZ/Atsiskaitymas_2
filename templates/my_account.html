@@ -27,7 +27,7 @@
         {% block account_content %}
         <h2>My account</h2>
         <p>
-            Hello User (not User? Log out)
+            Hello, <b>{{ current_user.first_name }}</b> (not <b>{{ current_user.first_name }}</b>? <a href="{{ url_for('main.logout') }}">Log out</a>)
         </p>
         <p>
             From your account dashboard, you can view your recent orders, manage and view your balance, edit your
