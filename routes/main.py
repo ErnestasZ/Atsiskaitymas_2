@@ -22,7 +22,7 @@ import Services.Forms.user_form as us_forms
 import Services.Forms.dashboard as dash_forms
 from flask_login import LoginManager
 from Controllers.user import create_user, get_user_by_email, update_user, verify_user_token
-from flask_mail import Mail
+# from flask_mail import Mail
 from Services.mail import send_verification_email
 
 main = Blueprint('main', __name__, url_prefix='/')
@@ -36,7 +36,7 @@ def register_main_routes(app, db):
     login_manager = LoginManager()
     login_manager.init_app(app)
 
-    mail = Mail(app)
+    # mail = Mail(app)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -88,12 +88,12 @@ def register_main_routes(app, db):
                     flash(f'You are blocked until {
                           user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
                 if user.verified_at is None:
-                    # [!] pakartotinai issiusti verifikavimo e-mail
+                    # pakartotinai issiunciam verifikavimo e-mail
+                    send_verification_email(user)
                     flash(
                         f'Your e-mail is not verified. Check your e-mail anf follow the link.', 'warning')
                 elif (not user.blocked_until is None) and (user.blocked_until >= datetime.now()):
-                    flash(f'You are blocked until {
-                          user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
+                    flash(f'You are blocked until {user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
                 else:
                     if user.check_password(password):
                         login_user(user)
@@ -150,7 +150,7 @@ def register_main_routes(app, db):
                 return redirect(url_for('main.login'))
             else:
                 # send user verification email
-                send_verification_email(mail, new_user)
+                send_verification_email(new_user)
                 flash('Your account has been created successfully!', 'success')
                 return redirect(url_for('main.registration_success'))
         return redirect(url_for('main.login'))
@@ -163,7 +163,6 @@ def register_main_routes(app, db):
 
     @main.route('/logout')
     def logout():
-        flash('You have been logged out.', 'main info')
         logout_user()
         flash('You have been logged out.', 'info')
         return redirect(url_for('main.index'))
