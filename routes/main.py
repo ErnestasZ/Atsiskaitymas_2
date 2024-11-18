@@ -3,7 +3,9 @@ from flask_login import login_user, logout_user, current_user
 from Models.user import User
 from datetime import datetime, timedelta
 from flask_login import LoginManager
-from Controllers.user import create_user, get_user_by_email, update_user
+from Controllers.user import create_user, get_user_by_email, update_user, verify_user_token
+from flask_mail import Mail
+from Services.mail import send_verification_email
 
 main = Blueprint('main', __name__, url_prefix='/')
 
@@ -12,6 +14,8 @@ def register_main_routes(app, db):
 
     login_manager = LoginManager()
     login_manager.init_app(app)
+
+    mail = Mail(app)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -95,10 +99,10 @@ def register_main_routes(app, db):
                 flash(result, 'danger')
                 return redirect(url_for('main.login'))
             else:
-                # Log the user in immediately after registration
-                login_user(new_user)
+                # send user verification email
+                send_verification_email(mail, new_user)
                 flash('Your account has been created successfully!', 'success')
-                return redirect(url_for('main.index'))
+                return redirect(url_for('main.registration_success'))
         return redirect(url_for('main.login'))
     
 
@@ -107,6 +111,17 @@ def register_main_routes(app, db):
         logout_user()
         flash('You have been logged out.', 'info')
         return redirect(url_for('main.index'))
+
+
+    @app.route('/verify-email/<token>')
+    def verify_email(token):
+        r = verify_user_token(token)
+        if r is True:
+            flash('Your email has been verified!', 'success')
+            return redirect(url_for('main.login'))
+        else:
+            flash(r, 'danger')
+            return redirect(url_for('main.index'))
 
 
     # @main.route('/lost-password', methods=['GET', 'POST'])

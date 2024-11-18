@@ -1,4 +1,5 @@
 from app import db
+import secrets
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from datetime import datetime
@@ -32,9 +33,10 @@ class User(db.Model, UserMixin):
     @property
     def is_active(self):
         return (not self.is_deleted) and ((self.blocked_until is None) or (self.blocked_until < datetime.now()))
-    # def is_authenticated(self):
-    #     return True
-    # def is_anonymous(self):
-    #     return False
-    # def get_id(self):
-    #     return str(self.id)
+    # methods for token
+    def generate_token(self):
+        return secrets.token_urlsafe(16)  # Generates a secure, URL-safe token
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not self.token:
+            self.token = self.generate_token()    
