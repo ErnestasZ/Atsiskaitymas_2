@@ -66,7 +66,7 @@ def get_user_balance(user_id):
         user_id (int): _description_
 
     Returns:
-        _type_: _description_
+       Float: formated float
     """
     wallet_sum = db.session.execute(
         select(

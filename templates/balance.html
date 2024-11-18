@@ -5,6 +5,7 @@
 {% block account_content %}
 <h2>My Balance</h2>
 <p>Here are your balance</p>
+{{ user.get_balance() }}
 <div class="mt-4">
     <h4 class=""><span class="muted-text">My balance amount:</span> {{balance}}</h4>
 
