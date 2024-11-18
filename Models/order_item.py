@@ -14,4 +14,4 @@ class Order_item(db.Model):
     # relations
     order = db.relationship('Order', back_populates='order_items')
     product = db.relationship('Product', back_populates='order_items')
-    reviews = db.relationship('Review', back_populates='order_item')
+    reviews = db.relationship('Review', back_populates='order_item', cascade="all, delete")

@@ -21,9 +21,10 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     # relations
     loyalty = db.relationship('Loyalty', back_populates='users')
-    orders = db.relationship('Order', back_populates='user')
-    cart_products = db.relationship('Cart_product', back_populates='user')
-    wallet_transactions = db.relationship('Wallet_transaction', back_populates='user')
+    orders = db.relationship('Order', back_populates='user', cascade="all, delete")
+    cart_products = db.relationship('Cart_product', back_populates='user', cascade="all, delete")
+    wallet_transactions = db.relationship('Wallet_transaction', back_populates='user', cascade="all, delete")
+
     # methods for password hash
     def set_password(self, password):
         self.password = generate_password_hash(password)
