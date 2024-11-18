@@ -89,6 +89,18 @@ def register_main_routes(app, db):
     @main.route('/my-account')
     def my_acc():
         return render_template('my_account.html')
+    
+    @main.route('/my-account/orders')
+    def my_orders():
+        return render_template('orders.html')
+    
+    @main.route('/my-account/balance')
+    def my_balance():
+        return render_template('balance.html')
+    
+    @main.route('/my-account/user-details')
+    def my_details():
+        return render_template('user_details.html')
 
     @main.route('/add_to_cart/<int:product_id>', methods=['POST'])
     def add_to_cart(product_id):
