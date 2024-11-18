@@ -55,6 +55,14 @@ def get_user_orders_by_id(user_id):
 
 
 def get_user_balance(user_id):
+    """_summary_
+    get user balance by user id
+    Args:
+        user_id (int): _description_
+
+    Returns:
+        _type_: _description_
+    """
     wallet_sum = db.session.execute(
         select(
             Wallet_transaction.user_id,
