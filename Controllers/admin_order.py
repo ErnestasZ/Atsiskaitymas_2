@@ -147,11 +147,10 @@ def get_order_with_user_by_id(order_id):
 
 def check_loyalty(user_id):
     # is user has loyalty
-    users_with_loyalty = db.session.query(
-        User) \
+    users_with_loyalty = db.session.query(User) \
         .filter(User.id == user_id) \
         .options(joinedload(User.loyalty)).first()
-
+    print(users_with_loyalty)
     if users_with_loyalty.loyalty_id:
         return f'user has loyalty {users_with_loyalty.loyalty.discout}%'
 

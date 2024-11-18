@@ -94,6 +94,7 @@ def get_best_rated_products():
         func.sum(Order_item.qty).label('sales_qty'),
         func.sum(Order_item.total_price).label('total'),
         func.avg(Review.rating).label('average_rating'),
+        func.count(Review.rating).label('review_count'),
     ) \
         .join(Review, Review.order_item_id == Order_item.id) \
         .group_by(Order_item.product_name, Order_item.product_id) \
