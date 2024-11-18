@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 import Controllers.dashboard as dash
 import Services.Forms.dashboard as forms
+from Misc.my_logger import my_logger
+
 # from Services.forms import testas
 dashboard = Blueprint('dashboard', __name__, url_prefix='/admin/dashboard')
 
@@ -12,7 +14,7 @@ def register_dashboard_routes(app, db):
         month_sales = dash.get_sales_by_month()
         best_rated = dash.get_best_rated_products()
         best_sales = dash.get_best_sales_products()
-        # month_sales = []
+        my_logger.info('get dashboard')
         return render_template('admin/dashboard/dashboard.html',
                                month_sales=month_sales,
                                best_rated=best_rated,

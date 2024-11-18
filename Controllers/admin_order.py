@@ -14,6 +14,7 @@ from Models.loyalty import Loyalty
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 from Misc.constants import ORDER_STATUSES, LOYALTIES
+from Misc.decorators import handle_errors
 # from Controllers.main_myaccount import get_user_expenses
 
 # ka issivesti
@@ -21,6 +22,7 @@ from Misc.constants import ORDER_STATUSES, LOYALTIES
 # id, status, total_amount, created_at, user.email, sum order_item.qty, count review, link_to_order
 
 
+@handle_errors(default_return=([], None), flash_message="Failed to load Orders.", flash_option='admin')
 def get_orders():
     orders = db.session.query(
         Order.id,
@@ -45,7 +47,7 @@ def get_orders():
 # User email
 # Order items all
 # id, order_id, product_id, gty, product_name, unit_price, total_amount, created_at, review.id, review.rating, review.content
-
+@handle_errors(default_return=([], None, []), flash_message="Failed to load Order Items.", flash_option='admin')
 def get_order_items(order_id):
     order_items = db.session.execute(
         select(
@@ -70,6 +72,7 @@ def get_order_items(order_id):
     return order_items, order, ORDER_STATUSES
 
 
+@handle_errors(default_return=(None, None), flash_message="Failed to load Items review.", flash_option='admin')
 def get_item_review(item_id):
     item = db.session.execute(
         select(
@@ -94,6 +97,7 @@ def get_item_review(item_id):
     return item, order
 
 
+@handle_errors(default_return=None, flash_message="Failed set Order Status.", flash_option='admin')
 def set_order_status(order_id, status):
     order = Order.query.get(order_id)
     if order:
@@ -103,6 +107,7 @@ def set_order_status(order_id, status):
         raise Exception("Order not found")
 
 
+@handle_errors(default_return=None, flash_message="Failed set Review.", flash_option='admin')
 def set_review(item_id, rating, content):
     review = Review.query.filter(Review.order_item_id == item_id).first()
     if review:
@@ -116,6 +121,7 @@ def set_review(item_id, rating, content):
         # raise Exception("Review not found")
 
 
+@handle_errors(default_return=None, flash_message="Failed remove review.", flash_option='admin')
 def remove_review(review_id):
     review = Review.query.get(review_id)
     if review:
@@ -124,27 +130,8 @@ def remove_review(review_id):
     else:
         raise Exception("Review not found")
 
-# shared function
 
-
-def get_order_with_user_by_id(order_id):
-    order = db.session.execute(select(
-        Order.id,
-        Order.status,
-        Order.loyalty_discount,
-        func.round(Order.total_amount, 2).label('total_amount'),
-        Order.total_amount,
-        func.date(Order.created_at).label('created_at'),
-        User.email.label("email"),
-        User.id.label("user_id"),
-    )
-        .join(Order.user)
-        .where(Order.id == order_id)) \
-        .first()
-
-    return order
-
-
+@handle_errors(default_return=None, flash_message="Failed chack User Loyalty.", flash_option='admin')
 def check_loyalty(user_id):
     # is user has loyalty
     users_with_loyalty = db.session.query(User) \
@@ -178,3 +165,24 @@ def check_loyalty(user_id):
         return f'Add to user loyalty discount {loyalty.discout}% seccessfuly'
 
     # LOYALTIES = {'orders': 5, 'amount': 1500, 'percents': 10}
+
+
+# shared function
+
+
+def get_order_with_user_by_id(order_id):
+    order = db.session.execute(select(
+        Order.id,
+        Order.status,
+        Order.loyalty_discount,
+        func.round(Order.total_amount, 2).label('total_amount'),
+        Order.total_amount,
+        func.date(Order.created_at).label('created_at'),
+        User.email.label("email"),
+        User.id.label("user_id"),
+    )
+        .join(Order.user)
+        .where(Order.id == order_id)) \
+        .first()
+
+    return order
