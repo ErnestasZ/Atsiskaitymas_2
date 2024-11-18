@@ -85,10 +85,10 @@ def register_main_routes(app, db):
             user = get_user_by_email(db, user_login)
             # Check if user exists and password is correct
             if user and not user.is_deleted:
-                if user.blocked_until >= datetime.datetime.now():
+                if not(user.blocked_until is None) and user.blocked_until >= datetime.now():
                     flash(f'You are blocked until {
                           user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
-                if user.veryfied_at is None:
+                if user.verified_at is None:
                     # [!] pakartotinai issiusti verifikavimo e-mail
                     flash(f'Your e-mail is not verified. Check your e-mail anf follow the link.', 'warning')
                 elif (not user.blocked_until is None) and (user.blocked_until >= datetime.now()):
@@ -113,7 +113,6 @@ def register_main_routes(app, db):
 
     @main.route('/register', methods=['GET', 'POST'])
     def register():
-        return render_template('login.html')
         if request.method == 'POST':
             # Get user input from the registration form
             first_name = request.form['register_first_name']
@@ -135,7 +134,7 @@ def register_main_routes(app, db):
                 last_name=last_name,
                 email=email,
                 token='',  # You may want to set a token for email verification
-                veryfied_at=datetime.now(),  # You can make this False until email is verified
+                verified_at=datetime.now(),  # You can make this False until email is verified
                 is_admin=False,
                 is_deleted=False,
                 blocked_until=None,

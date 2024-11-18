@@ -1,4 +1,5 @@
 from Models import User, Product, Order, Wallet_transaction, Order_item, Review
+from Controllers.user import create_user
 
 from app import db, create_app
 from faker import Faker
@@ -21,13 +22,15 @@ def populate_db():
     if not admin:
         admin = User(
             first_name="Admin",
-            last_name="User",
+            last_name="",
             email="admin@admin.com",
-            password="secret123",
-            is_admin=True
+            is_deleted=False,
+            verified_at = datetime.now(),
+            is_admin=True,
+            failed_count=0
         )
-        db.session.add(admin)
-        db.session.commit()
+        admin.set_password('123')
+        create_user(db, admin)
         print("Admin user created.")
     else:
         print("Admin user already exists.")
@@ -37,9 +40,12 @@ def populate_db():
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             email=fake.unique.email(),
-            password=fake.password(),
-            is_admin=False
+            is_deleted=False,
+            verified_at = datetime.now(),
+            is_admin=False,
+            failed_count=0
         )
+        user.set_password(user.first_name[:3])
         db.session.add(user)
 
     for _ in range(30):
