@@ -11,5 +11,5 @@ class Product(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     # relations
-    order_items = db.relationship('Order_item', back_populates='product')
-    cart_products = db.relationship('Cart_product', back_populates='product')
+    order_items = db.relationship('Order_item', back_populates='product', cascade="all, delete")
+    cart_products = db.relationship('Cart_product', back_populates='product', cascade="all, delete")

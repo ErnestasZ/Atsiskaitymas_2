@@ -1,16 +1,20 @@
 from sqlalchemy import select, not_, and_, or_
 from Models import Product, Review, Order_item
 from Controllers import db_provider as dbp
+from Misc.my_logger import log_crud_operation
 
 session = dbp.db.session
 
+@log_crud_operation
 def get_product_by_id(id: int) -> (Product | None):
     stmt = select(Product).where(Product.id == id)
     return session.execute(stmt).scalars().first()
 
+@log_crud_operation
 def get_all_products() -> list[Product]:
     return session.execute(select(Product)).scalars().all()
 
+@log_crud_operation
 def update_product(id: int = None, product: Product = None, **kwargs) -> (Product | Exception):
     if not product and id:
         product = get_product_by_id(id)
@@ -21,9 +25,11 @@ def update_product(id: int = None, product: Product = None, **kwargs) -> (Produc
         result = ValueError("Unable to update a non-existent database record!")
     return result
 
+@log_crud_operation
 def add_product(**kwargs) -> (Product | Exception):
     return dbp.push_db_record(Product, **kwargs)
 
+@log_crud_operation
 def get_average_rating(product):
     # Calculate total rating by summing al review ratings product.order_items
     total_rating = sum(review.rating for order_item in product.order_items for review in order_item.reviews if review.rating is not None)
@@ -35,6 +41,7 @@ def get_average_rating(product):
         return round(average_rating, 1)  
     return None
 
+@log_crud_operation
 def get_reviews(product):
     reviews = []     # Create empty list of reviews 
     for order_item in product.order_items: 
@@ -44,6 +51,7 @@ def get_reviews(product):
     return reviews
 
 
+@log_crud_operation
 def get_products(db, sort: dict[str, str], name: str = None, price: list[float] = None) -> list[Product]:
     """
     Get products from the database with optional sorting, name filtering, and price range.
