@@ -42,15 +42,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
-    # ### end Alembic commands ###
-
-    # uzpildom pradine informacija: loyalties
-    op.execute("""
-        INSERT INTO loyalties (id, name, discount, created_at)
-        VALUES
-        (1, 'Bronze', 0.0, CURRENT_TIMESTAMP),
-        (2, 'Silver', 5.0, CURRENT_TIMESTAMP)
-    """)    
+    # ### end Alembic commands ###   
 
 
 def downgrade():

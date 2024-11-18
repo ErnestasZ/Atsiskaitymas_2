@@ -2,42 +2,98 @@ from Models import Loyalty, User, Order_item
 from wtforms_sqlalchemy.fields import QuerySelectField
 from flask_admin.contrib.sqla import ModelView
 from wtforms import ValidationError
-from flask_admin.form import FileUploadField
+from flask_admin.form import FileUploadField, rules
 from Controllers import get_user_by_id, get_order_by_id
 from app import db
 import re
 from flask_admin import expose
-from flask import request
+from flask import request, flash
+from wtforms import BooleanField, StringField, PasswordField
+from datetime import datetime
 
 
-def password_validator(form, password):
+def password_validator(form, password, new=True):
     
-    if len(password) < 8:
-        raise ValidationError("Password must be at least 8 characters long.")
-    if not re.search(r"[A-Z]", password):
-        raise ValidationError("Password must contain at least one uppercase letter.")
-    if not re.search(r"[a-z]", password):
-        raise ValidationError("Password must contain at least one lowercase letter.")
-    if not re.search(r"\d", password):
-        raise ValidationError("Password must contain at least one digit.")
-    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        raise ValidationError("Password must contain at least one special character.")
+    if new:
+        if len(password) < 8:
+            raise ValidationError("Password must be at least 8 characters long.")
+        if not re.search(r"[A-Z]", password):
+            raise ValidationError("Password must contain at least one uppercase letter.")
+        if not re.search(r"[a-z]", password):
+            raise ValidationError("Password must contain at least one lowercase letter.")
+        if not re.search(r"\d", password):
+            raise ValidationError("Password must contain at least one digit.")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            raise ValidationError("Password must contain at least one special character.")
+    # else:
+    #     if password:
+    #         password_validator(form, password, False)
 
 class UserView(ModelView):
+    
+    form_extra_fields = {'new_password': StringField('Naujas slaptazodis')
+    }
+
     form_columns = (
         'first_name', 
         'last_name', 
         'email',
         'password',
-        'is_admin',
         'verified_at',
+        'is_admin',
         'is_deleted',
-        'loyalty'
-        ) 
+        'loyalty',
+        'token',
+        'new_password'
+        )
+
+    column_list = (
+        'first_name', 
+        'last_name', 
+        'email', 
+        'is_admin', 
+        'verified_at', 
+        'is_deleted', 
+        'blocked_until', 
+        'loyalty', 
+        'orders'
+        )
+
+    form_widget_args = {
+        'token': {'readonly': True}
+    }
+
+    column_filters = ['is_deleted']
+
+    column_formatters = {
+        'loyalty': lambda view, context, model, name: model.loyalty.name if model.loyalty else '-',
+        'orders': lambda view, context, model, name: len(model.orders),
+        'verified_at': lambda view, context, model, name: 'Yes' if model.verified_at else 'No',
+        'blocked_until': lambda view, context, model, name: f'Yes({model.blocked_until})' if model.blocked_until else 'No',
+    }
+
+
+    def delete_model(self, model):
+
+        result = True
+        if model.orders:  # Check if there are any children
+            flash(f"Cannot delete {model.email} because it has orders.", "error")
+            result = False
+        if model.cart_products:
+            flash(f"Cannot delete {model.email} because it has items in cart.", "error")
+            result = False
+        if model.wallet_transactions:
+            flash(f"Cannot delete {model.email} because it has wallet transactions.", "error")
+            result = False
+        if result:
+            return super().delete_model(model)
+        else:
+            self.session.rollback()
+            return result
 
 
     form_overrides = {
-        'loyalty': QuerySelectField,
+        'loyalty': QuerySelectField
     }
     form_args = {
         'loyalty': {
@@ -47,11 +103,18 @@ class UserView(ModelView):
         }
     }
 
+    
+
     def edit_form(self, obj=None):
         form = super().edit_form(obj)         
-        form.password.render_kw = {'required': False}
-        form.password.validators = []
+        del form.password
         return form
+    
+    def create_form(self, obj=None):
+        form = super().edit_form(obj)         
+        del form.new_password
+        return form
+
 
     form_labels = {
         'first_name' : 'First name', 
@@ -61,35 +124,74 @@ class UserView(ModelView):
         'is_admin' : 'Admin',
         'verified_at' : 'Verified',
         'is_deleted' : 'Deleted',
-        'loyalty' : 'Loyalty status'
+        'loyalty' : 'Loyalty status',
+        'token' : 'Token'
+    }
+
+    column_labels = {
+        'first_name':'First Name', 
+        'last_name' : 'Last Name', 
+        'email' : 'Email', 
+        'is_admin' : 'Admin', 
+        'verified_at' : 'Verified', 
+        'is_deleted' : 'Disabled', 
+        'blocked_until' : 'Blocked login', 
+        'loyalty' : 'Loyalty status', 
+        'orders' : 'Num of orders'
     }
     
     def on_model_change(self, form, model, is_created):
         # Only set the password if a new one is entered
         if is_created:
             password_validator(form, form.password.data)
+            model.set_password(form.password.data)
         else:
-            if form.password.data:
-                password_validator(form, form.password.data)
-            else:
-                user = get_user_by_id(db, model.id)
-                model.password = user.password
-                print(f"{model.password} <---------------------------")
+            if form.new_password.data:
+                password_validator(form, form.new_password.data)
+                model.set_password(form.new_password.data)
+
+    
 
 class LoyaltyView(ModelView):
-    form_columns = (
-        'name', 
-        'discount', 
-        ) 
+    form_columns = ('name', 'discount')
+    column_list = ('name', 'discount')
+
+    @staticmethod
+    def validate_discount(form, field):
+        if field.data <= 0:
+            raise ValidationError("Discount must be greater than 0")
+        
+    form_args = {
+        'discount': {
+            'validators': [validate_discount]
+        }
+    }
+    def delete_model(self, model):
+        if model.users:  # Check if there are any children
+            flash("Cannot delete Loyalty because it has assigned users.", "error")
+            return False
+        return super().delete_model(model)
+
+    # def create_model(self, *args, **kwargs):
+    #     print(args,kwargs)
+    #     # return super().create_model(form)
+    # def index_view(self,*args, **kwargs):
+    #     print(args,kwargs)
+    #     return super().index_view()
 
 class WalletView(ModelView):
     
+    column_filters = ['user']
+
     form_columns = (
         'user', 
         'amount', 
         ) 
 
-
+    column_formatters = {
+        'user': lambda view, context, model, name: f"{model.user.first_name} {model.user.last_name} ({model.user.email})",
+    }
+    
     form_overrides = {
         'user': QuerySelectField,
     }
@@ -157,6 +259,8 @@ class ProductView(ModelView):
 
 
 class OrderModelView(ModelView):
+
+    column_filters = ['user']
 
     edit_template = "admin/order.html"
 
