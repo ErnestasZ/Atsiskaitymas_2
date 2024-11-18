@@ -1,10 +1,13 @@
-from flask import render_template, url_for
+from flask import render_template, url_for, current_app
 from flask_mail import Message
 from Misc.my_logger import my_logger
 
 
 def send_verification_email(mail, user):
     'Send a verification email to the user.'
+    current_app.config['PREFERRED_URL_SCHEME'] = 'http://'
+    current_app.config['SERVER_NAME'] = '127.0.0.1:5004'
+    current_app.config['APPLICATION_ROOT'] = '/'
     verification_url = url_for('verify_email', token=user.token, _external=True)
 
     # Create the email message
