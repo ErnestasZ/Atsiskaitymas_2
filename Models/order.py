@@ -7,7 +7,6 @@ class Order(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     status = db.Column(db.String)
     total_amount = db.Column(db.Float)
-    loyalty_discount = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     # relations
     user = db.relationship('User', back_populates='orders')
