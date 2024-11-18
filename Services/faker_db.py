@@ -16,6 +16,16 @@ def get_random_date_within_week():
     return random_date
 
 
+def get_image_link_from_txt():
+    with open("Misc/links.txt", "r") as file:
+        images = file.read().splitlines()
+    return images
+
+
+image_link_list = get_image_link_from_txt()
+password = 'secret123'
+
+
 def populate_db():
     admin = User.query.filter_by(email="admin@admin.com").first()
     if not admin:
@@ -45,6 +55,7 @@ def populate_db():
     for _ in range(30):
         product = Product(
             title=fake.word().capitalize(),
+            image=random.choice(image_link_list),
             description=fake.text(),
             price=round(random.uniform(10, 100), 2),
             stock=random.randint(1, 100)
