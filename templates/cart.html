@@ -32,7 +32,7 @@
                         <td>
                             {% if loyalty_discount > 0 %}
                                 <!-- Display discounted price -->
-                                <del>{{ item.product.price }} €</del> 
+                                <del>{{ item.product.price | round(2) }} €</del> 
                                 {{ (item.product.price * (1 - loyalty_discount / 100)) | round(2) }} €
                             {% else %}
                                 {{ item.product.price | round(2) }} €
@@ -43,7 +43,7 @@
                         </td>
                         <td>
                             {% if loyalty_discount > 0 %}
-                                <del>{{ item.product.price * item.qty | round(2) }} €</del> 
+                                <del>{{ (item.product.price * item.qty) | round(2) }} €</del> 
                                 {{ ((item.product.price * (1 - loyalty_discount / 100)) * item.qty) | round(2) }} €
                             {% else %}
                                 {{ (item.product.price * item.qty) | round(2) }} €
