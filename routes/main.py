@@ -288,14 +288,14 @@ def register_main_routes(app, db:SQLAlchemy):
         product = get_product_by_id(product_id)
         if not product:
             flash('Product you are trying to add is not available.', 'warning')
-            return redirect(url_for('main.cart'))
+            return redirect(request.referrer)
         
         if current_user.is_authenticated:
             user_id = current_user.id
             cart_product = get_cart_product(db, session_id=None, product_id=product_id, user_id=user_id)
         else:
             user_id = None
-            cart_product = get_cart_product(db, session_id=session_id, product_id=product_id) 
+            cart_product = get_cart_product(db, session_id=session_id, product_id=product_id)
 
         
         if cart_product:
@@ -305,17 +305,15 @@ def register_main_routes(app, db:SQLAlchemy):
             cart_product.qty = qty
             db.session.commit()
             flash('Product you are trying to add is not available.', 'warning')
-            return redirect(url_for('main.cart'))
         else:
             if qty > product.stock:
                 qty = product.stock
             new_cart_product = Cart_product(session_id=session_id, user_id=user_id, product_id=product_id, qty=qty)
             if add_cart_product(db, new_cart_product):
                 flash('Product added to cart.', 'success')
-                return redirect(url_for('main.cart'))
             else:
                 flash('Error occured while adding product. Please contact administrator.', 'warning')
-                return redirect(url_for('main.cart'))
+        return redirect(request.referrer)
         
 
     @main.route('/cart')
@@ -331,6 +329,29 @@ def register_main_routes(app, db:SQLAlchemy):
         loyalty_discount = get_loyalty_discount()
         return render_template('cart.html', cart_products=cart_products, total_price=total_price, loyalty_discount=loyalty_discount)
 
+    @main.route('/remove_cart_item/<int:product_id>', methods=['GET'])
+    def remove_cart_item(product_id):
+        session_id = get_session_id()  # Get session ID
+            
+        if current_user.is_authenticated:
+            user_id = current_user.id
+            cart_product = get_cart_product(db, session_id=None, product_id=product_id, user_id=user_id)
+        else:
+            user_id = None
+            cart_product = get_cart_product(db, session_id=session_id, product_id=product_id)
+            
+        if not cart_product:
+            print('qwdas')
+            flash(f'Product you are trying to remove is not in your cart', 'warning')
+            return redirect(url_for('main.cart'))
+
+
+        print(cart_product)             
+        flash(f'Product {cart_product.product.title} was removed from your cart', 'success')
+        db.session.delete(cart_product)
+        db.session.commit()
+        return redirect(url_for('main.cart'))
+    
     @main.route('/update_cart', methods=['POST'])
     def update_cart():
         session_id = get_session_id()  # Get session ID
@@ -366,13 +387,10 @@ def register_main_routes(app, db:SQLAlchemy):
                     if qty > product.stock:
                         qty = product.stock
                         flash(f'We do not have enough product {cart_product.product.title} in stock quantity was automatically updated to {qty}', 'warning')
-                    cart_product.qty = qty
-                    db.session.commit()
-                    flash(f'Product {cart_product.product.title} quantity was updated successfully to {qty}', 'warning')
-            elif key.startswith('remove_'):
-                flash(f'Product {cart_product.product.title} was removed from your cart', 'success')
-                db.session.delete(cart_product)
-                db.session.commit
+                    if cart_product.qty != qty:
+                        cart_product.qty = qty
+                        db.session.commit()
+                        flash(f'Product {cart_product.product.title} quantity was updated successfully to {qty}', 'warning')
         return redirect(url_for('main.cart'))
 
     @main.before_app_request
@@ -387,7 +405,49 @@ def register_main_routes(app, db:SQLAlchemy):
     @main.route('/checkout')
     @login_required
     def checkout():
-        return render_template('checkout.html')
+        session_id = get_session_id()
+        cart_products = Cart_product.query.filter_by(session_id=session_id).all()
+
+        if cart_products:
+            fill_user(cart_products, current_user)
+            discount = get_loyalty_discount()
+            order = Order(user_id=current_user.id, status="Pending", loyalty_discount=discount)
+            db.session.add(order)
+            msg = ""
+            
+            total_amount = 0
+            for item in cart_products:
+                if item.qty > item.product.stock:
+                    msg = "Prekių kiekis viršija kiekį esanti sandėlyje"
+                
+                unit_price = item.product.price * (1 - discount / 100)
+                total_price = unit_price * item.qty
+                order_item = Order_item(order_id=order.id,
+                                        product_id=item.product.id,
+                                        qty=item.qty,
+                                        product_name=item.product.title,
+                                        unit_price=unit_price,
+                                        total_price=total_price)
+                total_amount += total_price
+                db.session.add(order_item)
+                db.session.delete(item)
+
+            if total_amount > current_user.get_balance():
+                msg = "Neužtenka lėšų apmokėjimui!"
+
+            if not msg:
+                try:
+                    order.total_amount = total_amount
+                    db.session.add(order)
+                    db.session.commit()
+                    msg = "Orderis sukurtas sekmingai"
+                except Exception as err:
+                    msg = err
+                else:
+                    return render_template('order_items.html', order=order, items=order.order_items)
+        else:
+            msg = "Krepšelyje nėra prekių!"
+        return render_template('checkout.html', message=msg)
 
     # register blueprint
 

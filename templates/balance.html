@@ -3,30 +3,31 @@
 {% block title %}My Balance{% endblock %}
 
 {% block account_content %}
-<h2>My Balance</h2>
-<p>Here are your balance</p>
-<div class="mt-4">
-    <h4 class=""><span class="muted-text">My balance amount:</span> {{balance}}</h4>
 
+<div class="mt-4 col-md-6">
+    
+    
+    <h4 class="mb-3"><span class="muted-text">My current balance:</span> {{balance}} €</h4>
+    <p>You can easily add funds to your account</p>
     <form method="POST" action="{{ url_for('main.my_balance') }}" novalidate>
         <!-- CSRF Token -->
         {{ form.hidden_tag() }}
-
-        <div class="form-group mt-2">
-            <label for="rating">Add amount</label>
-            {{ form.balance(class_="form-control") }}
-            {% if form.balance.errors %}
-            <div class="text-danger">
-                {% for error in form.balance.errors %}
-                <p>{{ error }}</p>
-                {% endfor %}
+    
+        <div class="input-group mb-3 mt-2">
+            <label for="balance" class="sr-only">Add amount to your balance</label>
+            {{ form.balance(class_="form-control", type_="number", placeholder="Add amount") }}
+            <div class="input-group-append">
+                <button class="btn btn-outline-ss" type="submit">Add</button>
             </div>
-            {% endif %}
         </div>
-
-
-        <button type="submit" class="btn btn-primary mt-2">Apply</button>
-
+    
+        {% if form.balance.errors %}
+        <div class="text-danger">
+            {% for error in form.balance.errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
     </form>
 </div>
 {% endblock %}

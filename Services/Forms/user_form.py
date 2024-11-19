@@ -9,7 +9,10 @@ from Misc.constants import password_regex
 #     existing_user = User.query.filter_by(email=field.data).first()
 #     if existing_user:
 #         raise ValidationError('Email is already taken')
-
+def letters_only(form, field):
+    if not field.data.isalpha():
+        raise ValidationError('This field can contain only letters.')
+    
 class BalanceForm(FlaskForm):
     balance = FloatField('Balance',
                          validators=[DataRequired(message='Enter numeric float separate "." decimals'),
@@ -19,10 +22,10 @@ class BalanceForm(FlaskForm):
 
 class UserForm(FlaskForm):
     first_name = StringField('First name', validators=[DataRequired(), Length(
-        min=3, max=20, message='Min 3 char')],
+        min=3, max=20, message='Min 3 char'), letters_only],
         render_kw={"placeholder": "Enter your first name"})
     last_name = StringField('Last name', validators=[DataRequired(), Length(
-        min=3, max=20)],
+        min=3, max=20), letters_only],
         render_kw={"placeholder": "Enter your last name"})
     password = PasswordField('Password', validators=[
         Length(min=8, max=20, message='Min 8 characters required'),
