@@ -35,8 +35,22 @@
                 </a>
             </div>
             <nav class="nav">
+                {% if current_user.is_authenticated %}
+                <span class="nav-link">Hello, {{ current_user.first_name }}</span>
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        My account
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                      <a class="dropdown-item" href="{{ url_for('main.my_acc') }}">My account</a>
+                      <a class="dropdown-item" href="{{ url_for('main.my_balance') }}" title="">My Balance</a>
+                      <a class="dropdown-item" href="{{ url_for('main.my_orders') }}" title="">My Orders</a>
+                      <a class="dropdown-item" href="{{ url_for('main.logout') }}">Logout</a>
+                    </div>
+                  </div>
+                {% else %}
                 <a class="nav-link" href="{{ url_for('main.login') }}">Sign in</a>
-                <a class="nav-link" href="{{ url_for('main.my_acc') }}">My account</a>
+                {% endif %}
                 <a class="nav-link" href="{{ url_for('main.cart') }}">
                     <i class="fa-solid fa-cart-shopping"></i> Cart
                     {% if g.cart_quantity > 0 %}

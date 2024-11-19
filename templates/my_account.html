@@ -3,21 +3,23 @@
 {% block title %}My account{% endblock %}
 
 {% block content %}
+<div class="container my-5">
+    <h2 class="mb-3 text-center">My account</h2>
 <div class="my-account-wrapper">
     <div class="my-account-sidebar">
-        <h4>My Account</h4>
+        <h6>My Account</h6>
         <nav>
-            <ul>
-                <li>
+            <ul class="list-group">
+                <li class="list-group-item">
                     <a href="{{ url_for('main.my_details') }}" title="">Account details</a>
-                </li>
-                <li>
+                </li class="list-group-item">
+                <li class="list-group-item">
                     <a href="{{ url_for('main.my_orders') }}" title="">My Orders</a>
                 </li>
-                <li>
+                <li class="list-group-item">
                     <a href="{{ url_for('main.my_balance') }}" title="">My Balance</a>
                 </li>
-                <li>
+                <li class="list-group-item">
                     <a href="{{ url_for('main.logout') }}" title="">Logout</a>
                 </li>
             </ul>
@@ -25,14 +27,18 @@
     </div>
     <div class="my-account-content">
         {% block account_content %}
-        <h2>My account</h2>
+        
         <p>
-            Hello {{ current_user.first_name }} {{ current_user.last_name }}
+            Hello, <b>{{ current_user.first_name }}</b> (not <b>{{ current_user.first_name }}</b>? <a href="{{ url_for('main.logout') }}">Log out</a>)
         </p>
         <p>
             From your account dashboard, you can view your recent orders, manage and view your balance, edit your
             account details.
         </p>
+        <p>Name: {{ current_user.first_name }}</p>
+        <p>Surname: {{ current_user.last_name }}</p>
+        <p>Email: {{ current_user.email}}</p>
+        <p>Loyalty Status: {{ current_user.loyalty.name if current_user.loyalty else 'Basic' }}</p>
         <div class="my-account-links grid-g">
             <div class="acc-link-element">
                 <a href="{{ url_for('main.my_details') }}" title="">
@@ -61,6 +67,7 @@
         </div>
         {% endblock %}
     </div>
+</div>
 </div>
 {% endblock %}
 

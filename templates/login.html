@@ -3,11 +3,11 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-<h2>Registration / Login</h2>
-<div class="container">
+<div class="container my-5">
+    <h2 class="mb-5 text-center">Registration / Login</h2>
     <div class="row" id="registration-forms">
-        <div class="col-md-6 mb-3" id="login-form">
-            <h2 class="text-center">Login</h2>
+        <div class="col-md-6 mb-3" id="login-form" style="display: block;">
+            <h2 class="text-center mb-4">Login</h2>
             <form action="{{ url_for('main.login') }}" method="POST">     
                 {% with messages = get_flashed_messages() %}
                     {% if messages %}
@@ -24,12 +24,11 @@
                 <div class="input-group mb-3">
                     <input type="password" class="form-control" placeholder="Password*" id="login_password" name="login_password">
                 </div>
-                <button type="submit" class="btn btn-primary">Login</button>
+                <button type="submit" class="btn btn-ss"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
             </form>
         </div>
-<!--        <div class="col-md-6 mb-3" id="register-form" style="display: none;" onsubmit="return showSuccessMessage(event)"> -->
         <div class="col-md-6 mb-3" id="register-form" style="display: none;">
-                <h2 class="text-center">Register</h2>
+                <h2 class="text-center mb-4">Register</h2>
             <form action="{{ url_for('main.register') }}" method="POST">  
                 {% with messages = get_flashed_messages() %}
                     {% if messages %}
@@ -55,47 +54,46 @@
                 <div class="input-group mb-3">
                     <input type="password" class="form-control" placeholder="Confirm password*" id="register_confirm_password" name="register_confirm_password">
                 </div>
-                <button type="submit" class="btn btn-primary">Register</button>
+                <button type="submit" class="btn btn-ss"><i class="fa-regular fa-circle-check"></i> Register</button>
             </form>
         </div>
 
-        <div class="col-md-6 mb-3">
-            <h2 class="text-center">Register</h2>
-            <p>
+        <div class="col-md-6 mb-3 text-center">
+            <h2 class="text-center mb-4">Register</h2>
+            <p class="text-center">
                 Registering for this site allows you to access your order status and history. Just fill in the fields below, and we'll get a new account set up for you in no time. We will only ask you for information necessary to make the purchase process faster and easier.
             </p>
-            <button type="button" class="btn btn-primary" id="switch-btn">Register</button>
+            <button type="button" class="btn btn-ss" id="switch-btn">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i> 
+                <span id="switch-btn-text"> Switch to Register</span>
+            </button>
         </div>
     </div>
-</div>
-<div id="success-message" style="display: none;">
-    <p>Please check your email to confirm registration and activate your account.</p>
-    <a href="{{ url_for('main.index') }}" class="btn btn-primary">Back to Home</a>
 </div>
 <script>
     // Switch to Register Form
     document.getElementById('switch-btn').addEventListener('click', function() {
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
-        const switchBtn = document.getElementById('switch-btn');
+        const switchBtnText = document.getElementById('switch-btn-text');
+        const switchBtnIcon = document.querySelector('#switch-btn i');
 
         if (loginForm.style.display === 'none') {
             // Show login form
             loginForm.style.display = 'block';
             registerForm.style.display = 'none';
-            switchBtn.textContent = "Register";
+            switchBtnText.textContent = " Switch to Register";
+            switchBtnIcon.classList.remove('fa-arrow-left');
+            switchBtnIcon.classList.add('fa-arrow-right');
         } else {
             // Show register form
             loginForm.style.display = 'none';
             registerForm.style.display = 'block';
-            switchBtn.textContent = "Login";
+            switchBtnText.textContent = " Switch to Login";
+            switchBtnIcon.classList.remove('fa-arrow-right');
+            switchBtnIcon.classList.add('fa-arrow-left');
         }
     });
-    function showSuccessMessage(event) {
-            event.preventDefault();
-            document.getElementById("registration-forms").style.display = "none";
-            document.getElementById("success-message").style.display = "block";
-        }
 </script>
     
 {% endblock %}
