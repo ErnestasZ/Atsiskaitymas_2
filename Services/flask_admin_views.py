@@ -6,7 +6,7 @@ from flask_admin.form import FileUploadField
 from Controllers import get_order_by_id, get_user_by_email
 from app import db
 import re
-from flask_admin import expose
+from flask_admin import expose, AdminIndexView
 from wtforms.validators import Email
 from flask_login import current_user
 from flask import request, flash, redirect, url_for
@@ -295,7 +295,7 @@ class ProductView(ModelView):
             flash(f"Cannot delete {model.title} because it has orders of this product.", "error")
             result = False
         if model.cart_products:
-            flash(f"Cannot delete {model.email} because it has cart objects with this product.", "error")
+            flash(f"Cannot delete {model.title} because it has cart objects with this product.", "error")
             result = False
         if result:
             return super().delete_model(model)
