@@ -288,8 +288,8 @@ def register_main_routes(app, db):
         if cart_product:
             cart_product.qty += int(qty)
         else:
-            cart_product = Cart_product(
-                session_id=session_id, product_id=product_id, qty=int(qty))
+            cart_product = Cart_product(session_id=session_id, product_id=product_id, qty=int(qty))
+            cart_product.user_id = current_user.id if current_user else None
             db.session.add(cart_product)
 
         db.session.commit()
@@ -334,7 +334,49 @@ def register_main_routes(app, db):
     @main.route('/checkout')
     @login_required
     def checkout():
-        return render_template('checkout.html')
+        session_id = get_session_id()
+        cart_products = Cart_product.query.filter_by(session_id=session_id).all()
+
+        if cart_products:
+            fill_user(cart_products, current_user)
+            discount = get_loyalty_discount()
+            order = Order(user_id=current_user.id, status="Pending", loyalty_discount=discount)
+            db.session.add(order)
+            msg = ""
+            
+            total_amount = 0
+            for item in cart_products:
+                if item.qty > item.product.stock:
+                    msg = "Prekių kiekis viršija kiekį esanti sandėlyje"
+                
+                unit_price = item.product.price * (1 - discount / 100)
+                total_price = unit_price * item.qty
+                order_item = Order_item(order_id=order.id,
+                                        product_id=item.product.id,
+                                        qty=item.qty,
+                                        product_name=item.product.title,
+                                        unit_price=unit_price,
+                                        total_price=total_price)
+                total_amount += total_price
+                db.session.add(order_item)
+                db.session.delete(item)
+
+            if total_amount > current_user.get_balance():
+                msg = "Neužtenka lėšų apmokėjimui!"
+
+            if not msg:
+                try:
+                    order.total_amount = total_amount
+                    db.session.add(order)
+                    db.session.Commit()
+                    msg = "Orderis sukurtas sekmingai"
+                except Exception as err:
+                    msg = err
+                else:
+                    return render_template('order_items.html', order=order, items=order.order_items)
+        else:
+            msg = "Krepšelyje nėra prekių!"
+        return render_template('checkout.html', msg)
 
     # register blueprint
 
