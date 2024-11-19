@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_admin import Admin
 from Models import User, Loyalty, Wallet_transaction, Product, Order, Review
-from Services.flask_admin_views import UserView, LoyaltyView, WalletView, ProductView, OrderModelView, ReviewModel, CustomAdminIndexView
+from Services.flask_admin_views import UserView, LoyaltyView, WalletView, ProductView, OrderModelView, ReviewModel
 from flask_login import current_user
 import warnings
 
