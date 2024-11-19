@@ -33,7 +33,7 @@ class UserForm(FlaskForm):
                message='Password must contain at least one special character')
     ])
     confirm_password = PasswordField('Confirm Password',
-                                     validators=[
+                                     validators=[ 
                                          Optional(),
                                          EqualTo(
                                              'password', message='Passwords must match')
