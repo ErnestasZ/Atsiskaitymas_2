@@ -1,5 +1,5 @@
 from sqlalchemy import select, not_, and_, or_
-from Models import Product, Review, Order_item
+from Models import Product, Review, Order_item, Order
 from Controllers import db_provider as dbp
 from Misc.my_logger import log_crud_operation
 
@@ -50,6 +50,8 @@ def get_reviews(product:Product):
             reviews.append(review)
     return reviews
 
+def reduce_stock(order: Order):
+    ...
 
 @log_crud_operation
 def get_products(db, sort: dict[str, str], name: str = None, price: list[float] = None) -> list[Product]:
