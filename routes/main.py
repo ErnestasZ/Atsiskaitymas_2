@@ -418,7 +418,7 @@ def register_main_routes(app, db:SQLAlchemy):
         cart_items = get_cart(db, session_id, user_id)
         g.cart_quantity = sum(item.qty for item in cart_items) if cart_items else 0
 
-    @main.route('/checkout/', defaults={'order_id': None}, methods=['GET'])
+    @main.route('/checkout/', defaults={'order_id': ''}, methods=['GET'])
     @main.route('/checkout/<int:order_id>', methods=['GET'])
     @login_required
     def checkout(order_id):
@@ -468,10 +468,14 @@ def register_main_routes(app, db:SQLAlchemy):
                     flash(err, 'error')
         return render_template('checkout.html', order_id=order_id)
 
-    @main.route('/payment/<int:order_id>', methods=['GET'])
+    @main.route('/payment/<order_id>', methods=['GET'])
     @login_required
     def payment(order_id):
-        order = ador.get_order_with_user_by_id(order_id)
+
+        if not order_id:
+            return render_template('checkout.html', order_id=order_id)
+
+        order = ador.get_order_with_user_by_id(int(order_id))
 
         if order.total_amount > current_user.get_balance():
             flash('Neužtenka lėšų apmokėjimui!', 'warning')
@@ -483,7 +487,9 @@ def register_main_routes(app, db:SQLAlchemy):
             flash('Mokėjimas atliktas sekmingai', 'success')
         else: flash(paiment, 'error')
 
-        return render_template('order_items.html', order=order, items=order.order_items)
+        items, order, _status = ador.get_order_items(order_id)
+        return render_template('order_items.html', order=order, items=items)
+        # return render_template('order_items.html', order=order, items=order.order_items)
 
     # register blueprint
 
