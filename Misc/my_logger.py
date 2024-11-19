@@ -7,19 +7,23 @@ my_logger = logging.Logger('app', level=logging.DEBUG)
 
 # output i faila
 
-formatter = logging.Formatter(fmt='{asctime} {filename} [{levelname}]: {message}', style='{')
+formatter = logging.Formatter(
+    fmt='{asctime} {filename} [{levelname}]: {message}', style='{')
 file_handler = logging.FileHandler("instance/app.log")
 file_handler.setFormatter(formatter)
 my_logger.addHandler(file_handler)
 
 # output i ekrana pagal custom filtra
 
+
 def custom_filter(record: logging.LogRecord) -> bool:
     return record.levelno >= logging.WARNING and record.filename == "app.py"
+
+
 stream_handler = logging.StreamHandler()
 stream_handler.addFilter(custom_filter)
 stream_handler.setFormatter(formatter)
-my_logger.addHandler(stream_handler) 
+my_logger.addHandler(stream_handler)
 
 # naudojimo pavyzdys
 

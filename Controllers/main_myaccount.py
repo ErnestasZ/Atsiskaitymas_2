@@ -11,15 +11,18 @@ from Models.order_item import Order_item
 from Models.review import Review
 from Models.wallet_transaction import Wallet_transaction
 from sqlalchemy import func, select
+from Misc.decorators import handle_errors
 
 # from Misc.constants import ORDER_STATUSES
 
 
+@handle_errors(default_return=None, flash_message="Failed to get User.")
 def get_login_user(user_id):
     user = User.query.get_or_404(user_id)
     return user
 
 
+@handle_errors(default_return=None, flash_message="Failed to edit User.")
 def edit_user(user_id, form):
     user = User.query.get_or_404(user_id)
     # user.email = form.email.data
@@ -30,6 +33,7 @@ def edit_user(user_id, form):
     db.session.commit()
 
 
+@handle_errors(default_return=([], None), flash_message="Failed to get User Orders.")
 def get_user_orders_by_id(user_id):
     orders = db.session.execute(
         select(
@@ -54,6 +58,7 @@ def get_user_orders_by_id(user_id):
     return orders, total_sale
 
 
+@handle_errors(default_return=None, flash_message="Failed to get User Balance.")
 def get_user_balance(user_id):
     """_summary_
     get user balance by user id
@@ -61,7 +66,7 @@ def get_user_balance(user_id):
         user_id (int): _description_
 
     Returns:
-        _type_: _description_
+       Float: formated float
     """
     wallet_sum = db.session.execute(
         select(
@@ -85,12 +90,14 @@ def get_user_balance(user_id):
     return round(wallet_sum - expense_amount, 2)
 
 
+@handle_errors(default_return=None, flash_message="Failed to get User Balance.")
 def add_balance(user_id, amount):
     wallet_transaction = Wallet_transaction(user_id=user_id, amount=amount)
     db.session.add(wallet_transaction)
     db.session.commit()
 
 
+# shared function
 def get_user_expenses(user_id):
     expenses = db.session.execute(
         select(

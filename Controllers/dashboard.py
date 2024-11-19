@@ -10,8 +10,10 @@ from Models.review import Review
 from Models.order_item import Order_item
 from sqlalchemy import func
 from datetime import datetime
+from Misc.decorators import handle_errors
 
 
+@handle_errors(default_return=([], None), flash_message="Failed to load Orders.", flash_option='admin')
 def get_orders_by_days_in_range(start_date=None, end_date=None):
 
     orders_query = db.session.query(
@@ -39,6 +41,7 @@ def get_orders_by_days_in_range(start_date=None, end_date=None):
     return orders_with_users, total_sale
 
 
+@handle_errors(default_return=([], None), flash_message="Failed to load Order items.", flash_option='admin')
 def get_order_items_by_days_in_range(start_date=None, end_date=None):
 
     orders_query = db.session.query(
@@ -74,6 +77,7 @@ def get_order_items_by_days_in_range(start_date=None, end_date=None):
     return orders_items, total_sale
 
 
+@handle_errors(default_return=[], flash_message="Failed to load monthly sales data.", flash_option='admin')
 def get_sales_by_month():
     month_sales = db.session.query(
         func.strftime('%Y-%m', Order.created_at).label('month'),
@@ -85,6 +89,7 @@ def get_sales_by_month():
     return month_sales
 
 
+@handle_errors(default_return=[], flash_message="Failed to load Best Rated items.", flash_option='admin')
 def get_best_rated_products():
     best_rated_products = db.session.query(
         Order_item.product_name.label('product_name'),
@@ -104,6 +109,7 @@ def get_best_rated_products():
     return best_rated_products
 
 
+@handle_errors(default_return=[], flash_message="Failed to load Best Sales items.", flash_option='admin')
 def get_best_sales_products():
     best_rated_products = db.session.query(
         Order_item.product_name.label('product_name'),

@@ -94,7 +94,8 @@ def register_main_routes(app, db):
                     flash(
                         f'Your e-mail is not verified. Check your e-mail anf follow the link.', 'warning')
                 elif (not user.blocked_until is None) and (user.blocked_until >= datetime.now()):
-                    flash(f'You are blocked until {user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
+                    flash(f'You are blocked until {
+                          user.blocked_until.strftime('%Y-%m-%d %H:%M')}.', 'danger')
                 else:
                     if user.check_password(password):
                         login_user(user)
@@ -155,19 +156,16 @@ def register_main_routes(app, db):
                 flash('Your account has been created successfully!', 'success')
                 return redirect(url_for('main.registration_success'))
         return redirect(url_for('main.login'))
-    
 
     @main.route('/registration_success', methods=['GET', 'POST'])
     def registration_success():
         return render_template('registration_success.html')
-
 
     @main.route('/logout')
     def logout():
         logout_user()
         flash('You have been logged out.', 'info')
         return redirect(url_for('main.index'))
-
 
     @app.route('/verify-email/<token>')
     def verify_email(token):
@@ -191,7 +189,8 @@ def register_main_routes(app, db):
     @main.route('/my-account/orders')
     @login_required
     def my_orders():
-        orders, total = myac.get_user_orders_by_id(current_user.id)  # pass user id
+        orders, total = myac.get_user_orders_by_id(
+            current_user.id)  # pass user id
         return render_template('orders.html', orders=orders, total=total)
 
     @main.route('/my-account/orders/<int:order_id>')
@@ -229,13 +228,15 @@ def register_main_routes(app, db):
         return redirect(url_for('main.my_item_review', order_id=order_id, item_id=item_id))
 
     @main.route('/my-account/balance', methods=['GET', 'POST'])
-    @login_required    
+    @login_required
     def my_balance():
-        user_id = current_user.id
-        balance = myac.get_user_balance(user_id)
+        # user_id = current_user.id
+        # balance = myac.get_user_balance(user_id)
+        balance = current_user.get_balance()
         form = us_forms.BalanceForm()
         if form.validate_on_submit():
-            myac.add_balance(user_id, form.balance.data)  # pass user id
+            # pass user id
+            myac.add_balance(current_user.id, form.balance.data)
             flash('Balance updated successfully.', 'main success')
             return redirect(url_for('main.my_balance'))
         return render_template('balance.html', balance=balance, form=form)
