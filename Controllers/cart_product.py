@@ -20,6 +20,7 @@ def fill_user(cart: list[Cart_product], user: User) -> None:
         dbp.push_db_record(product)
 
 def add_to_cart(db, cart_product:Cart_product) -> bool | str:
+    ...
 
 @log_crud_operation
 def add_cart_product(db:SQLAlchemy, cart_product:Cart_product) -> bool | str:
@@ -49,7 +50,6 @@ def update_cart_product(db:SQLAlchemy, cart_product:Cart_product) -> bool | str:
     Returns [bool] True on success
     Returns [str] error message on fail
     """
-    qry = select(Cart_product).where(car)
 
 def delete_cart_product(db, cart_product:Cart_product) -> bool | str:
     """
