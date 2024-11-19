@@ -38,3 +38,14 @@ def push_db_record(obj: object, session: Session = db.session, **kwargs):
         else:
             session.commit()
     return record
+
+def delete_db_record(obj: object, session: Session = db.session):
+    if isinstance(obj, DefaultMeta):
+        try:
+            result = session.delete(obj)
+        except Exception as err:
+            session.rollback()
+            result = err
+        else:
+            session.commit()
+    return result
