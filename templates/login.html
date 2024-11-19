@@ -9,7 +9,7 @@
         <div class="col-md-6 mb-3" id="login-form" style="display: block;">
             <h2 class="text-center mb-4">Login</h2>
             <form action="{{ url_for('main.login') }}" method="POST">     
-                {% with messages = get_flashed_messages() %}
+                <!-- {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         <div class="alert alert-danger">
                             {% for message in messages %}
@@ -17,7 +17,7 @@
                             {% endfor %}
                         </div>
                     {% endif %}
-                {% endwith %}
+                {% endwith %} -->
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" placeholder="Email*" id="login_email" name="login_email">
                 </div>
@@ -30,7 +30,7 @@
         <div class="col-md-6 mb-3" id="register-form" style="display: none;">
                 <h2 class="text-center mb-4">Register</h2>
             <form action="{{ url_for('main.register') }}" method="POST">  
-                {% with messages = get_flashed_messages() %}
+                <!-- {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         <div class="alert alert-danger">
                             {% for message in messages %}
@@ -38,7 +38,7 @@
                             {% endfor %}
                         </div>
                     {% endif %}
-                {% endwith %}
+                {% endwith %} -->
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" placeholder="Name" id="register_first_name" name="register_first_name">
                 </div>

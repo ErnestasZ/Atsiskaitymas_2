@@ -136,27 +136,22 @@ def register_main_routes(app, db:SQLAlchemy):
             email = request.form['register_email']
             password = request.form['register_password']
             confirm_password = request.form['register_confirm_password']
-            # validations
+            if not first_name or not last_name or not email or not password or not confirm_password:
+                flash('Please fill all fields', 'warning')
+                return redirect(url_for('main.login'))
+            
             if password != confirm_password:
-                flash('Passwords do not match.', 'danger')
+                flash('Passwords do not match.', 'warning')
                 return redirect(url_for('main.login'))
             existing_user = get_user_by_email(db, email)
             if existing_user:
-                flash(
-                    'Email is already registered. Please use a different email.', 'danger')
+                flash('Email is already registered. Please use a different email.', 'warning')
                 return redirect(url_for('main.login'))
             # create
             new_user = User(
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                token='',  # You may want to set a token for email verification
-                verified_at=None,
-                is_admin=False,
-                is_deleted=False,
-                blocked_until=None,
-                failed_count=0,
-                loyalty_id=None
             )
             new_user.set_password(password)
             result = create_user(db, new_user)
