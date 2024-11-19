@@ -13,7 +13,7 @@ Sukurkite internetinės parduotuvės apsipirkimo sistemą, su flask/streamlit(r
 	7.	Įsidėti sistemoje esančias prekes į krepšelį ir jį išsaugoti - Padaryta
 	8.	Nusipirkti krepšelyje esančias prekes - Nepadarytas Jevgenijus
 	9.	Nusipirkus prekę galima palikti atsiliepimą apie prekę ir įvertinimu 1-5 žvaigždutėmis - Padaryta
-	10.	Atsijungti - Pataisyti, Gytis - krepselis issitrina atsijungus
+	10.	Atsijungti - Pataisyti, Gytis - krepselis issitrina atsijungus 
 Administratoriaus galimybės
 	1.	Pridėti naują prekę - Padaryta
 	2.	Papildyti esamų prekių kiekį - Padaryta

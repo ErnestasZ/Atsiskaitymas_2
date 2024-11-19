@@ -70,7 +70,11 @@
                                 {{ product.title }}
                         </div>
                         <div class="product-img  mb-3">
-                            <img src="{{ product.image }}" alt="{{ product.title }}">
+                            {% if product.image.startswith('http') %}
+                                <img src="{{ product.image }}" alt="{{ product.title }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/' ~ product.image) }}" alt="{{ product.title }}">
+                            {% endif %}
                         </div>
                         <div class="product-rating mb-2">
                             {% if product.average_rating %}
@@ -129,9 +133,6 @@
             </div>
             {% endif %}
         {% endfor %}
-    </div>
-    <div class="text-center">
-        If lucky pagination here
     </div>
 </section>
 {% endblock %}
