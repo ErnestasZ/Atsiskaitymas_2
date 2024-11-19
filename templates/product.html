@@ -44,7 +44,14 @@
                 {% endif %}
             </div>
             <div class="mb-3">{{ product.description }}</div>
-            <div class="product-price mb-3">{{ product.price }} €</div>
+            <div class="product-price mb-3">
+                {% if discounted_price < product.price %}
+                    <span class="original-price">{{ product.price }} €</span>
+                    <span class="discounted-price">{{ discounted_price | round(2) }} €</span>
+                {% else %}
+                    <span>{{ product.price }} €</span>
+                {% endif %}
+            </div>
                 {% if product.stock > 0 %}
                     <form id="add-to-cart-form-{{ product.id }}" class="product-add-to-car" action="{{ url_for('main.add_to_cart', product_id=product.id) }}" method="post" onsubmit="addToCart(event, '{{ product.id }}')">
                         <input type="number" class="form-control" name="qty" value="1" min="1" required/>
