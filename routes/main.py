@@ -281,7 +281,13 @@ def register_main_routes(app, db):
         qty = request.form.get('qty', 1)  # Default quantity
         session_id = get_session_id()  # Get fake session ID
 
-        # Check if product already in the cart
+
+        # product = Product.query.get(product_id)  # Check if product exists
+        # if product:
+        #     # Product is deleted, return an error message
+        #     return jsonify({'error': 'This product is no longer available.'}), 404
+        # # Check if product already in the cart
+
         cart_product = Cart_product.query.filter_by(
             session_id=session_id, product_id=product_id).first()
 
@@ -293,6 +299,8 @@ def register_main_routes(app, db):
             db.session.add(cart_product)
 
         db.session.commit()
+        flash('Product added to cart.', 'success')
+        # return redirect(url_for('main.cart'))
         return jsonify({'message': 'Product added to cart'})
 
     @main.route('/cart')

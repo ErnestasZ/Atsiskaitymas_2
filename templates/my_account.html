@@ -39,6 +39,8 @@
         <p>Surname: {{ current_user.last_name }}</p>
         <p>Email: {{ current_user.email}}</p>
         <p>Loyalty Status: {{ current_user.loyalty.name if current_user.loyalty else 'Basic' }}</p>
+        <p>Your balance amount: {{current_user.get_balance()}} €</p>
+        
         <div class="my-account-links grid-g">
             <div class="acc-link-element">
                 <a href="{{ url_for('main.my_details') }}" title="">
