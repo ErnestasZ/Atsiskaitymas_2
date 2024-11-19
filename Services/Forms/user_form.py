@@ -22,7 +22,7 @@ class UserForm(FlaskForm):
         render_kw={"placeholder": "Enter your first name"})
     last_name = StringField('Last name', validators=[DataRequired(), Length(
         min=3, max=20)],
-        render_kw={"placeholder": "Enter your first name"})
+        render_kw={"placeholder": "Enter your last name"})
     password = PasswordField('Password', validators=[
         Length(min=8, max=20, message='Min 8 characters required'),
         EqualTo('confirm_password', message='Passwords must match'),
