@@ -1,0 +1,123 @@
+{%extends "/shared/admin_layout.html" %}
+{% block title %} Admin Dashboard {% endblock %}
+
+{% block content %}
+
+{% if order %}
+<div class="mt-4">
+    <div class="">
+        <small>
+            <a href="{{url_for('admin_order.index')}}" class="">
+                < orders</a>
+        </small>
+        <h2>Create / edit review:</h2>
+    </div>
+    <div class="mt-3">
+        <div class="text-muted">User:</div>
+        <a href="#" class="">{{order.email}} ></a>
+    </div>
+    <div class="mt-3">
+        <a href="{{url_for('admin_order.order_items', order_id=order.id)}}" class="">
+            <div class=""><span class="text-muted">Order ID:</span> {{order.id}} ></div>
+        </a>
+        <div class=""><span class="text-muted">Loyalty discount:</span> {{order.loyalty_discount}}</div>
+        <div class=""><span class="text-muted">Total amount:</span> {{order.total_amount}}</div>
+        <div class=""><span class="text-muted">Date:</span> {{order.created_at}}</div>
+    </div>
+    <div class="mt-3">
+        <div><span class="text-muted">Current order status:</span> {{ order.status }} </div>
+    </div>
+    <div class="mt-4">
+        <div><span class="text-muted">Item Id:</span> {{ review.item_id }}</div>
+        <div><span class="text-muted">Product title:</span> {{ review.product_name }} </div>
+        <div><span class="text-muted">Price:</span> {{ review.unit_price }} </div>
+        <div><span class="text-muted">Qty:</span> {{ review.qty }} </div>
+        <div><span class="text-muted">Total:</span> {{ review.total_price }} </div>
+
+    </div>
+    {% if review.id %}
+    <div class="mt-4">
+        <h4>Update Item Review</h4>
+    </div>
+    <div class="mt-2">
+        <form method="POST" action="{{ url_for('admin_order.item_review', order_id=order.id, item_id=review.item_id) }}"
+            novalidate>
+            <!-- CSRF Token -->
+            {{ form.hidden_tag() }}
+
+            <div class="form-group mt-2">
+                <label for="rating">Rating</label>
+                {{ form.rating(class_="form-control") }}
+                {% if form.rating.errors %}
+                <div class="text-danger">
+                    {% for error in form.rating.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group mt-2">
+                <label for="review">Review</label>
+                {{ form.content(class_="form-control") }}
+                {% if form.content.errors %}
+                <div class="text-danger">
+                    {% for error in form.content.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-2">Apply</button>
+
+        </form>
+
+        <form method="POST"
+            action="{{ url_for('admin_order.delete_review', order_id=order.id, item_id=review.item_id, review_id=review.id) }}"
+            class="d-inline">
+            <button type="submit" class="btn btn-danger mt-2">Delete</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="mt-4">
+        <div class="btn btn-secondary btn-sm">review not created</div>
+        <h4>Create New Review</h4>
+    </div>
+    <div class="mt-2">
+        <form method="POST" action="{{ url_for('admin_order.item_review', order_id=order.id, item_id=review.item_id) }}"
+            novalidate>
+            <!-- CSRF Token -->
+            {{ form.hidden_tag() }}
+
+            <div class="form-group mt-2">
+                <label for="rating">Rating</label>
+                {{ form.rating(class_="form-control") }}
+                {% if form.rating.errors %}
+                <div class="text-danger">
+                    {% for error in form.rating.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group mt-2">
+                <label for="review">Review</label>
+                {{ form.content(class_="form-control") }}
+                {% if form.content.errors %}
+                <div class="text-danger">
+                    {% for error in form.content.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-2">Create</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "shared/main_layout.html" %}
+
+{% block title %}My account{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-3 text-center">My account</h2>
+<div class="my-account-wrapper">
+    <div class="my-account-sidebar">
+        <h6>My Account</h6>
+        <nav>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <a href="{{ url_for('main.my_details') }}" title="">Account details</a>
+                </li class="list-group-item">
+                <li class="list-group-item">
+                    <a href="{{ url_for('main.my_orders') }}" title="">My Orders</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{{ url_for('main.my_balance') }}" title="">My Balance</a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{{ url_for('main.logout') }}" title="">Logout</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <div class="my-account-content">
+        {% block account_content %}
+        
+        <p>
+            Hello, <b>{{ current_user.first_name }}</b> (not <b>{{ current_user.first_name }}</b>? <a href="{{ url_for('main.logout') }}">Log out</a>)
+        </p>
+        <p>
+            From your account dashboard, you can view your recent orders, manage and view your balance, edit your
+            account details.
+        </p>
+        <p>Name: {{ current_user.first_name }}</p>
+        <p>Surname: {{ current_user.last_name }}</p>
+        <p>Email: {{ current_user.email}}</p>
+        <p>Loyalty Status: {{ current_user.loyalty_id}}</p>
+        <div class="my-account-links grid-g">
+            <div class="acc-link-element">
+                <a href="{{ url_for('main.my_details') }}" title="">
+                    <div class="img-wrapper">
+                        <img src="{{ url_for('static', filename='images/user.png') }}" alt="" class="icon-svg">
+                    </div>
+                    <span>Account details</span>
+                </a>
+            </div>
+            <div class="acc-link-element">
+                <a href="{{ url_for('main.my_orders') }}" title="">
+                    <div class="img-wrapper">
+                        <img src="{{ url_for('static', filename='images/orders.png') }}" alt="">
+                    </div>
+                    <span>My Orders</span>
+                </a>
+            </div>
+            <div class="acc-link-element">
+                <a href="{{ url_for('main.my_balance') }}" title="">
+                    <div class="img-wrapper">
+                        <img src="{{ url_for('static', filename='images/money.png') }}" alt="">
+                    </div>
+                    <span>My Balance</span>
+                </a>
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+</div>
+</div>
+{% endblock %}
+
+<script>
+    // Add click event listener to make each div clickable
+    document.querySelectorAll('.acc-link-element').forEach(function (linkElement) {
+        linkElement.addEventListener('click', function () {
+            // Find the <a> tag within the clicked div and trigger a click on it
+            var anchor = this.querySelector('a');
+            if (anchor) {
+                anchor.click();
+            }
+        });
+    });
+</script>

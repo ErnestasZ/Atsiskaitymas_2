@@ -1,0 +1,14 @@
+{% extends "shared/main_layout.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container text-center my-5">
+<h2 class="my-4">Successfully registered</h2>
+    <div id="success-message">
+        <p class="mb-3">Your account has been created successfully! <br> Please check your email to confirm registration and activate your account.</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-ss">Back to Home</a>
+    </div>
+</div>
+    
+{% endblock %}

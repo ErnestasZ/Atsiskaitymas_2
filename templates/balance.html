@@ -1,0 +1,32 @@
+{% extends "my_account.html" %}
+
+{% block title %}My Balance{% endblock %}
+
+{% block account_content %}
+<h2>My Balance</h2>
+<p>Here are your balance</p>
+<div class="mt-4">
+    <h4 class=""><span class="muted-text">My balance amount:</span> {{balance}}</h4>
+
+    <form method="POST" action="{{ url_for('main.my_balance') }}" novalidate>
+        <!-- CSRF Token -->
+        {{ form.hidden_tag() }}
+
+        <div class="form-group mt-2">
+            <label for="rating">Add amount</label>
+            {{ form.balance(class_="form-control") }}
+            {% if form.balance.errors %}
+            <div class="text-danger">
+                {% for error in form.balance.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+
+        <button type="submit" class="btn btn-primary mt-2">Apply</button>
+
+    </form>
+</div>
+{% endblock %}
