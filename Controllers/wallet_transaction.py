@@ -7,5 +7,5 @@ def make_payment(user: User, order: Order) -> (Wallet_transaction | Exception):
     paiment = dbp.push_db_record(Wallet_transaction, user_id=user.id, amount=order.total_amount)
     
     if isinstance(paiment, Wallet_transaction):
-        dbp.push_db_record(order, status = "Paid")
+        dbp.push_db_record(order, status="Paid")
     return paiment
