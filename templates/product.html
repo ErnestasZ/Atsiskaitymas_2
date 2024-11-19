@@ -6,7 +6,13 @@
     <div class="row product-summary mt-5">
         <div class="col-md-6">
             <div class="product-img">
-                <img src="{{ product.image }}" alt="{{ product.title }}">
+                <div class="product-img">
+                    {% if product.image.startswith('http') %}
+                        <img src="{{ product.image }}" alt="{{ product.title }}">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ product.image) }}" alt="{{ product.title }}">
+                    {% endif %}
+                </div>
             </div>
         </div>
         <div class="col-md-6">

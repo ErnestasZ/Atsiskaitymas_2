@@ -1,0 +1,86 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+
+<!-- menu  -->
+<!-- menu  -->
+<div class="">
+    <a href="{{url_for('admin.index')}} " class="">Statistic ></a>
+</div>
+<div class="">
+    <a href="{{url_for('admin.orders')}} " class="">Orders sales by date ></a>
+</div>
+<div class="">
+    <a href="{{url_for('admin.items')}} " class="">Items sales by date ></a>
+</div>
+
+<div class="container px-4 mt-4">
+    <h1 class="mb-4">Sales by Items</h1>
+    <form method="GET" action="{{url_for('admin.items')}}" class="row g-3 " style="margin-left: 0px;">
+        <div class="col-md-5">
+            <label for="items_start_date" class="form-label">Start Date:</label>
+            <input type="date" id="items_start_date" name="items_start_date" class="form-control"
+                value="{{ items_start_date if items_start_date else '' }}">
+        </div>
+        <div class="col-md-5">
+            <label for="items_end_date" class="form-label">End Date:</label>
+            <input type="date" id="items_end_date" name="items_end_date" class="form-control"
+                value="{{ items_end_date if items_end_date else '' }}">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+</div>
+<div class="">
+
+    <!-- Clear Filter Button -->
+    <div class="mt-2">
+        <a href="{{url_for('admin.items')}}" class="btn btn-secondary">Clear
+            Filters</a>
+    </div>
+
+    <!-- Display Date Range -->
+    <p class="mt-3">
+        <strong>Start Date:</strong> {{ start_date if start_date else 'Not specified' }}<br>
+        <strong>End Date:</strong> {{ end_date if end_date else 'Not specified' }}
+    </p>
+
+    <!-- Display the orders table if there are orders -->
+    {% if items %}
+    <h2>Items List:</h2>
+    <p>
+        <strong>total sale EUR:</strong> {{ total }}
+    </p>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Item ID</th>
+                <th>Ordered at</th>
+                <th>Title</th>
+                <th>Rating</th>
+                <th>Price</th>
+                <th>Total qty</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.item_id }}</td>
+                <td>{{ item.created_at }}</td>
+                <td>{{ item.title }}</td>
+                <td>{{ item.rating }}</td>
+                <td>{{ item.product_price }}</td>
+                <td>{{ item.total_qty }}</td>
+                <td>{{ item.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No orders found for the selected date range.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
