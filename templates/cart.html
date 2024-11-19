@@ -54,7 +54,6 @@
             <div class="cart-totals mb-3">
                 <h3>Total Price: 
                     {% if loyalty_discount > 0 %}
-                        
                         {{ (total_price * (1 - loyalty_discount / 100)) | round(2) }} €
                     {% else %}
                         {{ total_price | round(2) }} €
