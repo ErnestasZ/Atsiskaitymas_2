@@ -402,13 +402,14 @@ def register_main_routes(app, db:SQLAlchemy):
         session_id = get_session_id()
         g.cart_quantity = len(get_cart(db, session_id, user_id))
 
-    @main.route('/checkout')
+    @main.route('/checkout/', defaults={'order_id': None}, methods=['GET'])
+    @main.route('/checkout/<int:order_id>', methods=['GET'])
     @login_required
-    def checkout():
+    def checkout(order_id):
         session_id = get_session_id()
         cart_products = Cart_product.query.filter_by(session_id=session_id).all()
 
-        if cart_products:
+        if not order_id and cart_products:
             fill_user(cart_products, current_user)
             discount = get_loyalty_discount()
             order = Order(user_id=current_user.id, status="Pending", loyalty_discount=discount)
@@ -443,17 +444,30 @@ def register_main_routes(app, db:SQLAlchemy):
                     order.total_amount = total_amount
                     db.session.add(order)
                     db.session.commit()
-
-                    flash('Orderis sukurtas sekmingai', 'success')
+                    reduce_stock(order)
+                    order_id = order.id
+                    flash('Užsakymas sukurtas sekmingai', 'success')
                 except Exception as err:
                     msg = err
                     flash(err, 'error')
-                else:
-                    reduce_stock(order)
-        else:
-            no_errors = False
-            flash('Krepšelyje nėra prekių!', 'warning')
-        return render_template('checkout.html', success=no_errors)
+        return render_template('checkout.html', order_id=order_id)
+
+    @main.route('/payment/<int:order_id>', methods=['GET'])
+    @login_required
+    def payment(order_id):
+        order = ador.get_order_with_user_by_id(order_id)
+
+        if order.total_amount > current_user.get_balance():
+            flash('Neužtenka lėšų apmokėjimui!', 'warning')
+            return render_template('checkout.html', order_id=order_id)
+
+        paiment = make_payment(current_user, order)
+
+        if isinstance(paiment, Wallet_transaction):
+            flash('Mokėjimas atliktas sekmingai', 'success')
+        else: flash(paiment, 'error')
+
+        return render_template('order_items.html', order=order, items=order.order_items)
 
     # register blueprint
 
