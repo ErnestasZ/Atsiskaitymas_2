@@ -55,10 +55,17 @@ def register_main_routes(app, db):
 
         products = get_products(
             db, {sort['key']: sort['order']}, name=search_option, price=[min_price, max_price])
+        
+        loyalty_discount = get_loyalty_discount()
 
         for product in products:
-            product.average_rating = get_average_rating(
-                product)  # Get rating for each product in list
+            product.average_rating = get_average_rating(product)  # Get rating for each product in list
+            
+            # Apply loyalty discount to product price
+            if loyalty_discount > 0:
+                product.discounted_price = product.price * (1 - loyalty_discount / 100)
+            else:
+                product.discounted_price = product.price
 
         no_products_message = None
         if not products:
@@ -71,7 +78,13 @@ def register_main_routes(app, db):
         product = Product.query.get_or_404(product_id)  # get products by ID
         average_rating = get_average_rating(product)  # get product rating
         reviews = get_reviews(product)  # get product revievs
-        return render_template('product.html', product=product, average_rating=average_rating, reviews=reviews)
+        loyalty_discount = get_loyalty_discount()
+
+        if loyalty_discount > 0:
+            discounted_price = product.price * (1 - loyalty_discount / 100)
+        else:
+            discounted_price = product.price
+        return render_template('product.html', product=product, average_rating=average_rating, reviews=reviews, discounted_price=discounted_price)
 
     @main.route('/login', methods=['GET', 'POST'])
     def login():
@@ -184,6 +197,7 @@ def register_main_routes(app, db):
     @main.route('/my-account')
     @login_required
     def my_acc():
+        
         return render_template('my_account.html')
 
     @main.route('/my-account/orders')
@@ -286,10 +300,10 @@ def register_main_routes(app, db):
         session_id = get_session_id()
         cart_products = Cart_product.query.filter_by(
             session_id=session_id).all()
-        total_price = sum(item.product.price *
-                          item.qty for item in cart_products)
+        total_price = sum(item.product.price * item.qty for item in cart_products)
         total_price = round(total_price, 2)
-        return render_template('cart.html', cart_products=cart_products, total_price=total_price)
+        loyalty_discount = get_loyalty_discount()
+        return render_template('cart.html', cart_products=cart_products, total_price=total_price, loyalty_discount=loyalty_discount)
 
     @main.route('/update_cart', methods=['POST'])
     def update_cart():

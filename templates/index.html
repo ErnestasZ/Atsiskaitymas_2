@@ -108,7 +108,12 @@
                             {% endif %}
                         </div>
                         <div class="product-price">
-                            {{ product.price }} €
+                            {% if product.discounted_price < product.price %}
+                                <span class="original-price">{{ product.price }} €</span>
+                                <span class="discounted-price">{{ product.discounted_price | round(2) }} €</span>
+                            {% else %}
+                                <span>{{ product.price }} €</span>
+                            {% endif %}
                         </div>
                     </a>
                 </div>
