@@ -10,25 +10,32 @@ from flask_admin import expose, AdminIndexView
 from wtforms.validators import Email
 from flask_login import current_user
 from flask import request, flash, redirect, url_for
+####
+import Controllers.dashboard as dash
 import uuid
 
 
 def password_validator(form, password, new=True):
-    
+
     if new:
         if len(password) < 8:
-            raise ValidationError("Password must be at least 8 characters long.")
+            raise ValidationError(
+                "Password must be at least 8 characters long.")
         if not re.search(r"[A-Z]", password):
-            raise ValidationError("Password must contain at least one uppercase letter.")
+            raise ValidationError(
+                "Password must contain at least one uppercase letter.")
         if not re.search(r"[a-z]", password):
-            raise ValidationError("Password must contain at least one lowercase letter.")
+            raise ValidationError(
+                "Password must contain at least one lowercase letter.")
         if not re.search(r"\d", password):
             raise ValidationError("Password must contain at least one digit.")
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-            raise ValidationError("Password must contain at least one special character.")
+            raise ValidationError(
+                "Password must contain at least one special character.")
     # else:
     #     if password:
     #         password_validator(form, password, False)
+
 
 def restrict_access(cls):
     # Define dynamic methods to restrict access
@@ -46,15 +53,16 @@ def restrict_access(cls):
     cls.inaccessible_callback = inaccessible_callback
     return cls
 
+
 @restrict_access
 class UserView(ModelView):
 
     form_extra_fields = {'new_password': PasswordField('Naujas slaptazodis')
-    }
+                         }
 
     form_columns = (
-        'first_name', 
-        'last_name', 
+        'first_name',
+        'last_name',
         'email',
         'password',
         'verified_at',
@@ -63,20 +71,20 @@ class UserView(ModelView):
         'loyalty',
         'token',
         'new_password'
-        )
+    )
 
     column_list = (
-        'first_name', 
-        'last_name', 
-        'email', 
-        'is_admin', 
-        'verified_at', 
-        'is_deleted', 
-        'blocked_until', 
-        'loyalty', 
+        'first_name',
+        'last_name',
+        'email',
+        'is_admin',
+        'verified_at',
+        'is_deleted',
+        'blocked_until',
+        'loyalty',
         'orders',
         'balance'
-        )
+    )
 
     form_widget_args = {
         'token': {'readonly': True}
@@ -89,28 +97,29 @@ class UserView(ModelView):
         'orders': lambda view, context, model, name: len(model.orders),
         'verified_at': lambda view, context, model, name: 'Yes' if model.verified_at else 'No',
         'blocked_until': lambda view, context, model, name: f'Yes({model.blocked_until})' if model.blocked_until else 'No',
-        'balance' : lambda view, context, model, name: model.get_balance(),
+        'balance': lambda view, context, model, name: model.get_balance(),
     }
-
 
     def delete_model(self, model):
 
         result = True
         if model.orders:  # Check if there are any children
-            flash(f"Cannot delete {model.email} because it has orders.", "error")
+            flash(f"Cannot delete {
+                  model.email} because it has orders.", "error")
             result = False
         if model.cart_products:
-            flash(f"Cannot delete {model.email} because it has items in cart.", "error")
+            flash(f"Cannot delete {
+                  model.email} because it has items in cart.", "error")
             result = False
         if model.wallet_transactions:
-            flash(f"Cannot delete {model.email} because it has wallet transactions.", "error")
+            flash(f"Cannot delete {
+                  model.email} because it has wallet transactions.", "error")
             result = False
         if result:
             return super().delete_model(model)
         else:
             self.session.rollback()
             return result
-
 
     form_overrides = {
         'loyalty': QuerySelectField
@@ -121,62 +130,61 @@ class UserView(ModelView):
             'allow_blank': False,
             'get_label': 'name'
         },
-        'email' : {
+        'email': {
             'validators': [Email(message='Invalid email address.')]
         }
     }
 
-    
-
     def edit_form(self, obj=None):
-        form = super().edit_form(obj)         
+        form = super().edit_form(obj)
         del form.password
         return form
-    
+
     def create_form(self, obj=None):
-        form = super().edit_form(obj)         
+        form = super().edit_form(obj)
         del form.new_password
         return form
 
-
     form_labels = {
-        'first_name' : 'First name', 
-        'last_name' : 'Last name', 
-        'email' : 'Email',
-        'password' : 'password',
-        'is_admin' : 'Admin',
-        'verified_at' : 'Verified',
-        'is_deleted' : 'Deleted',
-        'loyalty' : 'Loyalty status',
-        'token' : 'Token'
+        'first_name': 'First name',
+        'last_name': 'Last name',
+        'email': 'Email',
+        'password': 'password',
+        'is_admin': 'Admin',
+        'verified_at': 'Verified',
+        'is_deleted': 'Deleted',
+        'loyalty': 'Loyalty status',
+        'token': 'Token'
     }
 
     column_labels = {
-        'first_name':'First Name', 
-        'last_name' : 'Last Name', 
-        'email' : 'Email', 
-        'is_admin' : 'Admin', 
-        'verified_at' : 'Verified', 
-        'is_deleted' : 'Disabled', 
-        'blocked_until' : 'Blocked login', 
-        'loyalty' : 'Loyalty status', 
-        'orders' : 'Num of orders'
+        'first_name': 'First Name',
+        'last_name': 'Last Name',
+        'email': 'Email',
+        'is_admin': 'Admin',
+        'verified_at': 'Verified',
+        'is_deleted': 'Disabled',
+        'blocked_until': 'Blocked login',
+        'loyalty': 'Loyalty status',
+        'orders': 'Num of orders'
     }
 
     def validate_form(self, form):
         is_create = form._obj is None
         if is_create:
             if get_user_by_email(db, form.email.data):
-                flash(f"User with email [{form.email.data}] already exists!", 'error')
+                flash(
+                    f"User with email [{form.email.data}] already exists!", 'error')
                 return False
         else:
             user = form._obj
             new_user = get_user_by_email(db, form.email.data)
             if new_user and new_user.id != user.id:
-                flash(f"User with email [{form.email.data}] already exists!", 'error')
+                flash(
+                    f"User with email [{form.email.data}] already exists!", 'error')
                 return False
         return super().validate_form(form)
-    
+
     def on_model_change(self, form, model, is_created):
 
         if is_created:
@@ -188,7 +196,7 @@ class UserView(ModelView):
                 password_validator(form, form.new_password.data)
                 model.set_password(form.new_password.data)
 
-    
+
 @restrict_access
 class LoyaltyView(ModelView):
     form_columns = ('name', 'discount')
@@ -198,32 +206,34 @@ class LoyaltyView(ModelView):
     def validate_discount(form, field):
         if field.data <= 0:
             raise ValidationError("Discount must be greater than 0")
-        
+
     form_args = {
         'discount': {
             'validators': [validate_discount]
         }
     }
+
     def delete_model(self, model):
         if model.users:  # Check if there are any children
             flash("Cannot delete Loyalty because it has assigned users.", "error")
             return False
         return super().delete_model(model)
-    
+
+
 @restrict_access
 class WalletView(ModelView):
-    
+
     column_filters = ['user']
 
     form_columns = (
-        'user', 
-        'amount', 
-        ) 
+        'user',
+        'amount',
+    )
 
     column_formatters = {
         'user': lambda view, context, model, name: f"{model.user.first_name} {model.user.last_name} ({model.user.email})",
     }
-    
+
     form_overrides = {
         'user': QuerySelectField,
     }
@@ -237,21 +247,22 @@ class WalletView(ModelView):
     }
 
     form_labels = {
-        'user' : 'User', 
-        'amount' : 'Amount', 
+        'user': 'User',
+        'amount': 'Amount',
     }
+
 
 @restrict_access
 class ProductView(ModelView):
-    
+
     form_columns = (
-        'title', 
-        'description', 
+        'title',
+        'description',
         'price',
         'image',
         'stock',
         'is_active'
-        )  
+    )
 
     form_overrides = {
         'image': FileUploadField
@@ -261,7 +272,7 @@ class ProductView(ModelView):
     def validate_stock(form, field):
         if field.data < 1:
             raise ValidationError("Stock must be 1 or greater")
-    
+
     @staticmethod
     def validate_price(form, field):
         if field.data <= 0:
@@ -289,28 +300,31 @@ class ProductView(ModelView):
     
 
     form_labels = {
-        'title':'Title', 
-        'description':'Description', 
-        'price':'Price',
-        'image':'Image',
-        'stock':'Stock',
-        'is_active':'Enabled'
+        'title': 'Title',
+        'description': 'Description',
+        'price': 'Price',
+        'image': 'Image',
+        'stock': 'Stock',
+        'is_active': 'Enabled'
     }
-    
+
     def delete_model(self, model):
 
         result = True
         if model.order_items:
-            flash(f"Cannot delete {model.title} because it has orders of this product.", "error")
+            flash(f"Cannot delete {
+                  model.title} because it has orders of this product.", "error")
             result = False
         if model.cart_products:
-            flash(f"Cannot delete {model.title} because it has cart objects with this product.", "error")
+            flash(f"Cannot delete {
+                  model.title} because it has cart objects with this product.", "error")
             result = False
         if result:
             return super().delete_model(model)
         else:
             self.session.rollback()
             return result
+
 
 @restrict_access
 class OrderModelView(ModelView):
@@ -323,8 +337,8 @@ class OrderModelView(ModelView):
         'items': lambda view, context, model, name: len(model.order_items),
         'user': lambda view, context, model, name: model.user.email
     }
-    
-    column_list = ('id','user', 'total_amount', 'items')
+
+    column_list = ('id', 'user', 'total_amount', 'items')
     form_columns = (
         'user',
         ) 
@@ -343,15 +357,16 @@ class OrderModelView(ModelView):
 
     @expose('/edit/', methods=('GET', 'POST'))
     def edit_view(self):
-         order_id = request.args.get('id', type=int)
-         self._template_args['order'] = get_order_by_id(db, order_id)
-         return super(OrderModelView, self).edit_view()
-    
+        order_id = request.args.get('id', type=int)
+        self._template_args['order'] = get_order_by_id(db, order_id)
+        return super(OrderModelView, self).edit_view()
+
     def delete_model(self, model):
 
         result = True
         if model.order_items:  # Check if there are any children
-            flash(f"Cannot delete order [ID:{model.id}] because it has order items.", "error")
+            flash(f"Cannot delete order [ID:{
+                  model.id}] because it has order items.", "error")
             result = False
         if result:
             return super().delete_model(model)
@@ -359,12 +374,13 @@ class OrderModelView(ModelView):
             self.session.rollback()
             return result
 
+
 @restrict_access
 class ReviewModel(ModelView):
 
-    form_create_rules = ('order_item', 'content', 'rating') 
-    form_edit_rules = ('content', 'rating') 
-    column_list = ('order_id','order_item', 'content', 'rating', 'created_at') 
+    form_create_rules = ('order_item', 'content', 'rating')
+    form_edit_rules = ('content', 'rating')
+    column_list = ('order_id', 'order_item', 'content', 'rating', 'created_at')
 
     form_overrides = {
         'order_item': QuerySelectField,
@@ -374,7 +390,6 @@ class ReviewModel(ModelView):
         'order_item': lambda view, context, model, name: model.order_item.product_name,
         'order_id': lambda view, context, model, name: model.order_item.order_id
     }
-
 
     form_args = {
         'order_item': {
@@ -389,14 +404,53 @@ class ReviewModel(ModelView):
     }
 
     form_labels = {
-        'order_item' : 'Product', 
-        'content' : 'Comment', 
-        'rating' : 'Rating (1-5)'
+        'order_item': 'Product',
+        'content': 'Comment',
+        'rating': 'Rating (1-5)'
     }
     column_labels = {
         'id': 'ID',
-        'order_item' : 'Product', 
-        'content' : 'Comment', 
-        'rating' : 'Rating',
-        'created_at' : 'Date'
+        'order_item': 'Product',
+        'content': 'Comment',
+        'rating': 'Rating',
+        'created_at': 'Date'
     }
+
+
+class CustomAdminIndexView(AdminIndexView):
+    @expose('/')
+    def index(self):
+        month_sales = dash.get_sales_by_month()
+        best_rated = dash.get_best_rated_products()
+        best_sales = dash.get_best_sales_products()
+        # my_logger.info('get dashboard')
+        return self.render('admin/flask_dash/dashboard.html',
+                           month_sales=month_sales,
+                           best_rated=best_rated,
+                           best_sales=best_sales)
+    # return self.render('admin/flask_dash/dashboard.html')
+    # return redirect(url_for('admin.test'))
+
+    @expose('/dash/orders', methods=['GET'])
+    def orders(self):
+        start_date_arg = request.args.get('start_date')
+        end_date_arg = request.args.get('end_date')
+        orders, total = dash.get_orders_by_days_in_range(
+            start_date_arg, end_date_arg)
+        return self.render('admin/flask_dash/orders.html',
+                           orders=orders,
+                           total=total,
+                           start_date=start_date_arg,
+                           end_date=end_date_arg)
+
+    @expose('/dash/items', methods=['GET'])
+    def items(self):
+        items_start_date = request.args.get('items_start_date')
+        items_end_date = request.args.get('items_end_date')
+        items, total_sale = dash.get_order_items_by_days_in_range(
+            items_start_date, items_end_date)
+        return self.render('admin/flask_dash/items.html',
+                           items=items,
+                           total=total_sale,
+                           items_start_date=items_start_date,
+                           items_end_date=items_end_date)

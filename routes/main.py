@@ -279,16 +279,20 @@ def register_main_routes(app, db:SQLAlchemy):
     @main.route('/add_to_cart/<int:product_id>', methods=['POST'])
     def add_to_cart(product_id):
         try:
-            qty = int(request.form.get('qty', 1)) # Default quantity if not passed
+            qty = int(request.form.get('qty', 1))  # Default quantity if not passed
         except:
-            flash('Quantity must be number', 'error')
-            return redirect(request.referrer)
+            flash('Quantity must be a number', 'error')
+            return jsonify({'error': 'Quantity must be a number'}), 400
         
         session_id = get_session_id()
         product = get_product_by_id(product_id)
         if not product:
             flash('Product you are trying to add is not available.', 'warning')
-            return redirect(request.referrer)
+            return jsonify({'error': 'Product not available'}), 400
+        
+        if qty > product.stock:
+            flash(f'Not enough stock available. Only {product.stock} units in stock.', 'warning')
+            qty = product.stock 
         
         if current_user.is_authenticated:
             user_id = current_user.id
@@ -297,23 +301,34 @@ def register_main_routes(app, db:SQLAlchemy):
             user_id = None
             cart_product = get_cart_product(db, session_id=session_id, product_id=product_id)
 
-        
         if cart_product:
-            qty = cart_product.qty + int(qty)
-            if qty > product.stock:
-                qty = product.stock
-            cart_product.qty = qty
-            db.session.commit()
-            flash('Product you are trying to add is not available.', 'warning')
+            new_qty = cart_product.qty + qty
+            
+            if new_qty > product.stock:
+                new_qty = product.stock
+                flash(f'We do not have enough stock for {cart_product.product.title}. The quantity was automatically adjusted to {new_qty}.', 'warning')
+                return jsonify({'message': 'We do not have enough stock for this product.'}), 200
+            
+            if cart_product.qty != new_qty:
+                cart_product.qty = new_qty
+                db.session.commit()
+                flash(f'Product quantity updated in cart to {new_qty}.', 'success')
+                return jsonify({'message': 'Product quantity updated in cart.'}), 200
+            
+
         else:
             if qty > product.stock:
                 qty = product.stock
+                flash(f'Not enough stock for {product.title}. The quantity was automatically adjusted to {qty}.', 'warning')
+
             new_cart_product = Cart_product(session_id=session_id, user_id=user_id, product_id=product_id, qty=qty)
             if add_cart_product(db, new_cart_product):
                 flash('Product added to cart.', 'success')
+                return jsonify({'message': 'Product added to cart.'}), 200
             else:
-                flash('Error occured while adding product. Please contact administrator.', 'warning')
-        return redirect(request.referrer)
+                flash('Error occurred while adding product. Please contact administrator.', 'warning')
+                return jsonify({'error': 'Error occurred while adding product. Please contact administrator.'}), 400
+        # return redirect(request.referrer)
         
 
     @main.route('/cart')
@@ -400,7 +415,8 @@ def register_main_routes(app, db:SQLAlchemy):
         else:
             user_id = None
         session_id = get_session_id()
-        g.cart_quantity = len(get_cart(db, session_id, user_id))
+        cart_items = get_cart(db, session_id, user_id)
+        g.cart_quantity = sum(item.qty for item in cart_items) if cart_items else 0
 
     @main.route('/checkout')
     @login_required
@@ -413,12 +429,14 @@ def register_main_routes(app, db:SQLAlchemy):
             discount = get_loyalty_discount()
             order = Order(user_id=current_user.id, status="Pending", loyalty_discount=discount)
             db.session.add(order)
-            msg = ""
             
+            no_errors = True
             total_amount = 0
+
             for item in cart_products:
                 if item.qty > item.product.stock:
-                    msg = "Prekių kiekis viršija kiekį esanti sandėlyje"
+                    no_errors = False
+                    flash('Prekių kiekis viršija kiekį esanti sandėlyje', 'warning')
                 
                 unit_price = item.product.price * (1 - discount / 100)
                 total_price = unit_price * item.qty
@@ -433,21 +451,25 @@ def register_main_routes(app, db:SQLAlchemy):
                 db.session.delete(item)
 
             if total_amount > current_user.get_balance():
-                msg = "Neužtenka lėšų apmokėjimui!"
+                no_errors = False
+                flash('Neužtenka lėšų apmokėjimui!', 'warning')
 
-            if not msg:
+            if no_errors:
                 try:
                     order.total_amount = total_amount
                     db.session.add(order)
                     db.session.commit()
-                    msg = "Orderis sukurtas sekmingai"
+
+                    flash('Orderis sukurtas sekmingai', 'success')
                 except Exception as err:
                     msg = err
+                    flash(err, 'error')
                 else:
-                    return render_template('order_items.html', order=order, items=order.order_items)
+                    reduce_stock(order)
         else:
-            msg = "Krepšelyje nėra prekių!"
-        return render_template('checkout.html', message=msg)
+            no_errors = False
+            flash('Krepšelyje nėra prekių!', 'warning')
+        return render_template('checkout.html', success=no_errors)
 
     # register blueprint
 
