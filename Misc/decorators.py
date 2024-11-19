@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import flash, current_app
+from flask import flash
 from Misc.my_logger import my_logger
 
 
