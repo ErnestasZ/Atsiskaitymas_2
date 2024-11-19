@@ -28,7 +28,7 @@ from Services.mail import send_verification_email
 main = Blueprint('main', __name__, url_prefix='/')
 
 
-def register_main_routes(app, db):
+def register_main_routes(app, db:SQLAlchemy):
 
     @app.errorhandler(404)
     def page_not_found(e):
@@ -278,36 +278,54 @@ def register_main_routes(app, db):
 
     @main.route('/add_to_cart/<int:product_id>', methods=['POST'])
     def add_to_cart(product_id):
-        qty = request.form.get('qty', 1)  # Default quantity
-        session_id = get_session_id()  # Get fake session ID
-
-
-        # product = Product.query.get(product_id)  # Check if product exists
-        # if product:
-        #     # Product is deleted, return an error message
-        #     return jsonify({'error': 'This product is no longer available.'}), 404
-        # # Check if product already in the cart
-
-        cart_product = Cart_product.query.filter_by(
-            session_id=session_id, product_id=product_id).first()
-
-        if cart_product:
-            cart_product.qty += int(qty)
+        try:
+            qty = int(request.form.get('qty', 1)) # Default quantity if not passed
+        except:
+            flash('Quantity must be number', 'error')
+            return redirect(request.referrer)
+        
+        session_id = get_session_id()
+        product = get_product_by_id(product_id)
+        if not product:
+            flash('Product you are trying to add is not available.', 'warning')
+            return redirect(url_for('main.cart'))
+        
+        if current_user.is_authenticated:
+            user_id = current_user.id
+            cart_product = get_cart_product(db, session_id=None, product_id=product_id, user_id=user_id)
         else:
-            cart_product = Cart_product(
-                session_id=session_id, product_id=product_id, qty=int(qty))
-            db.session.add(cart_product)
+            user_id = None
+            cart_product = get_cart_product(db, session_id=session_id, product_id=product_id)
 
-        db.session.commit()
-        flash('Product added to cart.', 'success')
-        # return redirect(url_for('main.cart'))
-        return jsonify({'message': 'Product added to cart'})
+        
+        if cart_product:
+            qty = cart_product.qty + int(qty)
+            if qty > product.stock:
+                qty = product.stock
+            cart_product.qty = qty
+            db.session.commit()
+            flash('Product you are trying to add is not available.', 'warning')
+            return redirect(url_for('main.cart'))
+        else:
+            if qty > product.stock:
+                qty = product.stock
+            new_cart_product = Cart_product(session_id=session_id, user_id=user_id, product_id=product_id, qty=qty)
+            if add_cart_product(db, new_cart_product):
+                flash('Product added to cart.', 'success')
+                return redirect(url_for('main.cart'))
+            else:
+                flash('Error occured while adding product. Please contact administrator.', 'warning')
+                return redirect(url_for('main.cart'))
+        
 
     @main.route('/cart')
     def cart():
-        session_id = get_session_id()
-        cart_products = Cart_product.query.filter_by(
-            session_id=session_id).all()
+        if current_user.is_authenticated:
+            cart_products = get_cart(db, None, user_id=current_user.id)
+        else:
+            session_id = get_session_id()
+            cart_products = get_cart(db, session_id)
+
         total_price = sum(item.product.price * item.qty for item in cart_products)
         total_price = round(total_price, 2)
         loyalty_discount = get_loyalty_discount()
@@ -316,33 +334,102 @@ def register_main_routes(app, db):
     @main.route('/update_cart', methods=['POST'])
     def update_cart():
         session_id = get_session_id()  # Get session ID
+        for key, qty in request.form.items():
+            try:
+                qty = int(qty)
+            except:
+                flash('Quantity must be number', 'error')
+                return redirect(request.referrer)
 
-        # all form fields
-        for key, value in request.form.items():
-            if key.startswith('qty_'):
+            if qty < 1:
+                flash('Quantity must be 1 or higher', 'error')
+                return redirect(request.referrer)
+            
+            product_id = int(key.split('_')[1])
+            product = get_product_by_id(product_id)
+            if current_user.is_authenticated:
+                user_id = current_user.id
+                cart_product = get_cart_product(db, session_id=None, product_id=product_id, user_id=user_id)
+            else:
+                user_id = None
+                cart_product = get_cart_product(db, session_id=session_id, product_id=product_id)
+            
+            if not product:
+                flash(f'Product {cart_product.product.title} is no longer available and was removed from your cart', 'warning')
+                db.session.delete(cart_product)
+                db.session.commit
+                continue
+
+            if key.startswith('productid_'):
                 # Extract item ID from the form field name
-                item_id = int(key.split('_')[1])
-                cart_item = Cart_product.query.get(item_id)
-                if cart_item:
-                    cart_item.qty = int(value)  # Update the quantity
+                if cart_product:
+                    if qty > product.stock:
+                        qty = product.stock
+                        flash(f'We do not have enough product {cart_product.product.title} in stock quantity was automatically updated to {qty}', 'warning')
+                    cart_product.qty = qty
+                    db.session.commit()
+                    flash(f'Product {cart_product.product.title} quantity was updated successfully to {qty}', 'warning')
             elif key.startswith('remove_'):
-                item_id = int(key.split('_')[1])  # Extract item ID for removal
-                cart_item = Cart_product.query.get(item_id)
-                if cart_item:
-                    db.session.delete(cart_item)  # Remove item
-        db.session.commit()
+                flash(f'Product {cart_product.product.title} was removed from your cart', 'success')
+                db.session.delete(cart_product)
+                db.session.commit
         return redirect(url_for('main.cart'))
 
     @main.before_app_request
     def before_request():
+        if current_user.is_authenticated:
+            user_id = current_user.id
+        else:
+            user_id = None
         session_id = get_session_id()
-        g.cart_quantity = db.session.query(db.func.sum(Cart_product.qty)).filter_by(
-            session_id=session_id).scalar() or 0
+        g.cart_quantity = len(get_cart(db, session_id, user_id))
 
     @main.route('/checkout')
     @login_required
     def checkout():
-        return render_template('checkout.html')
+        session_id = get_session_id()
+        cart_products = Cart_product.query.filter_by(session_id=session_id).all()
+
+        if cart_products:
+            fill_user(cart_products, current_user)
+            discount = get_loyalty_discount()
+            order = Order(user_id=current_user.id, status="Pending", loyalty_discount=discount)
+            db.session.add(order)
+            msg = ""
+            
+            total_amount = 0
+            for item in cart_products:
+                if item.qty > item.product.stock:
+                    msg = "Prekių kiekis viršija kiekį esanti sandėlyje"
+                
+                unit_price = item.product.price * (1 - discount / 100)
+                total_price = unit_price * item.qty
+                order_item = Order_item(order_id=order.id,
+                                        product_id=item.product.id,
+                                        qty=item.qty,
+                                        product_name=item.product.title,
+                                        unit_price=unit_price,
+                                        total_price=total_price)
+                total_amount += total_price
+                db.session.add(order_item)
+                db.session.delete(item)
+
+            if total_amount > current_user.get_balance():
+                msg = "Neužtenka lėšų apmokėjimui!"
+
+            if not msg:
+                try:
+                    order.total_amount = total_amount
+                    db.session.add(order)
+                    db.session.Commit()
+                    msg = "Orderis sukurtas sekmingai"
+                except Exception as err:
+                    msg = err
+                else:
+                    return render_template('order_items.html', order=order, items=order.order_items)
+        else:
+            msg = "Krepšelyje nėra prekių!"
+        return render_template('checkout.html', msg)
 
     # register blueprint
 
