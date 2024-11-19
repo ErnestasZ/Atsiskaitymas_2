@@ -10,6 +10,7 @@ from flask_admin import expose, AdminIndexView
 from wtforms.validators import Email
 from flask_login import current_user
 from flask import request, flash, redirect, url_for
+import uuid
 
 
 def password_validator(form, password, new=True):
@@ -266,6 +267,12 @@ class ProductView(ModelView):
         if field.data <= 0:
             raise ValidationError("Price must be greater than 0")
         
+    @staticmethod
+    def namegen(form, file):
+        # Generate a unique file name using UUID and preserve the file extension
+        ext = file.filename.split()
+        return f"{uuid.uuid4().hex}{ext[-1]}"
+    
     form_args = {
         'stock': {
             'validators': [validate_stock]
@@ -275,9 +282,11 @@ class ProductView(ModelView):
         },
         'image': {
             'base_path': 'static/uploads/',
-            'allow_overwrite': False  
+            'allow_overwrite': False,
+            'namegen' : namegen
         }
     }
+    
 
     form_labels = {
         'title':'Title', 
@@ -306,7 +315,7 @@ class ProductView(ModelView):
 @restrict_access
 class OrderModelView(ModelView):
 
-    column_filters = ['user']
+    column_filters = ['user.email']
 
     edit_template = "admin/order.html"
 
@@ -318,9 +327,8 @@ class OrderModelView(ModelView):
     column_list = ('id','user', 'total_amount', 'items')
     form_columns = (
         'user',
-        'total_amount'
         ) 
-
+    can_create = False
     form_overrides = {
         'user': QuerySelectField,
     }
