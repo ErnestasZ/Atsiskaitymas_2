@@ -71,7 +71,13 @@ def register_main_routes(app, db):
         product = Product.query.get_or_404(product_id)  # get products by ID
         average_rating = get_average_rating(product)  # get product rating
         reviews = get_reviews(product)  # get product revievs
-        return render_template('product.html', product=product, average_rating=average_rating, reviews=reviews)
+        loyalty_discount = get_loyalty_discount()
+
+        if loyalty_discount > 0:
+            discounted_price = product.price * (1 - loyalty_discount / 100)
+        else:
+            discounted_price = product.price
+        return render_template('product.html', product=product, average_rating=average_rating, reviews=reviews, discounted_price=discounted_price)
 
     @main.route('/login', methods=['GET', 'POST'])
     def login():
@@ -184,6 +190,7 @@ def register_main_routes(app, db):
     @main.route('/my-account')
     @login_required
     def my_acc():
+        
         return render_template('my_account.html')
 
     @main.route('/my-account/orders')

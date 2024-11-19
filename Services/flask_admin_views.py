@@ -1,15 +1,15 @@
 from Models import Loyalty, User, Order_item
 from wtforms_sqlalchemy.fields import QuerySelectField
 from flask_admin.contrib.sqla import ModelView
-from wtforms import ValidationError
-from flask_admin.form import FileUploadField, rules
-from Controllers import get_user_by_id, get_order_by_id
+from wtforms import ValidationError, PasswordField
+from flask_admin.form import FileUploadField
+from Controllers import get_order_by_id, get_user_by_email
 from app import db
 import re
 from flask_admin import expose
-from flask import request, flash
-from wtforms import BooleanField, StringField, PasswordField
-from datetime import datetime
+from wtforms.validators import Email
+from flask_login import current_user
+from flask import request, flash, redirect, url_for
 
 
 def password_validator(form, password, new=True):
@@ -29,9 +29,26 @@ def password_validator(form, password, new=True):
     #     if password:
     #         password_validator(form, password, False)
 
+def restrict_access(cls):
+    # Define dynamic methods to restrict access
+    def is_accessible(self):
+        if current_user.is_authenticated and current_user.is_admin:
+            return True
+        return False
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash("Access forbidden", 'warning')
+        return redirect(url_for('main.login'))
+
+    # Assign these methods to the class dynamically
+    cls.is_accessible = is_accessible
+    cls.inaccessible_callback = inaccessible_callback
+    return cls
+
+@restrict_access
 class UserView(ModelView):
-    
-    form_extra_fields = {'new_password': StringField('Naujas slaptazodis')
+
+    form_extra_fields = {'new_password': PasswordField('Naujas slaptazodis')
     }
 
     form_columns = (
@@ -56,7 +73,8 @@ class UserView(ModelView):
         'is_deleted', 
         'blocked_until', 
         'loyalty', 
-        'orders'
+        'orders',
+        'balance'
         )
 
     form_widget_args = {
@@ -70,6 +88,7 @@ class UserView(ModelView):
         'orders': lambda view, context, model, name: len(model.orders),
         'verified_at': lambda view, context, model, name: 'Yes' if model.verified_at else 'No',
         'blocked_until': lambda view, context, model, name: f'Yes({model.blocked_until})' if model.blocked_until else 'No',
+        'balance' : lambda view, context, model, name: model.get_balance(),
     }
 
 
@@ -100,6 +119,9 @@ class UserView(ModelView):
             'query_factory': lambda: Loyalty.query.all(),
             'allow_blank': False,
             'get_label': 'name'
+        },
+        'email' : {
+            'validators': [Email(message='Invalid email address.')]
         }
     }
 
@@ -139,19 +161,34 @@ class UserView(ModelView):
         'loyalty' : 'Loyalty status', 
         'orders' : 'Num of orders'
     }
+
+    def validate_form(self, form):
+        is_create = form._obj is None
+        if is_create:
+            if get_user_by_email(db, form.email.data):
+                flash(f"User with email [{form.email.data}] already exists!", 'error')
+                return False
+        else:
+            user = form._obj
+            new_user = get_user_by_email(db, form.email.data)
+            if new_user and new_user.id != user.id:
+                flash(f"User with email [{form.email.data}] already exists!", 'error')
+                return False
+        return super().validate_form(form)
     
     def on_model_change(self, form, model, is_created):
-        # Only set the password if a new one is entered
+
         if is_created:
             password_validator(form, form.password.data)
             model.set_password(form.password.data)
+            model.token = model.generate_token()
         else:
             if form.new_password.data:
                 password_validator(form, form.new_password.data)
                 model.set_password(form.new_password.data)
 
     
-
+@restrict_access
 class LoyaltyView(ModelView):
     form_columns = ('name', 'discount')
     column_list = ('name', 'discount')
@@ -171,14 +208,8 @@ class LoyaltyView(ModelView):
             flash("Cannot delete Loyalty because it has assigned users.", "error")
             return False
         return super().delete_model(model)
-
-    # def create_model(self, *args, **kwargs):
-    #     print(args,kwargs)
-    #     # return super().create_model(form)
-    # def index_view(self,*args, **kwargs):
-    #     print(args,kwargs)
-    #     return super().index_view()
-
+    
+@restrict_access
 class WalletView(ModelView):
     
     column_filters = ['user']
@@ -209,7 +240,7 @@ class WalletView(ModelView):
         'amount' : 'Amount', 
     }
 
-
+@restrict_access
 class ProductView(ModelView):
     
     form_columns = (
@@ -256,8 +287,23 @@ class ProductView(ModelView):
         'stock':'Stock',
         'is_active':'Enabled'
     }
+    
+    def delete_model(self, model):
 
+        result = True
+        if model.order_items:
+            flash(f"Cannot delete {model.title} because it has orders of this product.", "error")
+            result = False
+        if model.cart_products:
+            flash(f"Cannot delete {model.email} because it has cart objects with this product.", "error")
+            result = False
+        if result:
+            return super().delete_model(model)
+        else:
+            self.session.rollback()
+            return result
 
+@restrict_access
 class OrderModelView(ModelView):
 
     column_filters = ['user']
@@ -292,8 +338,20 @@ class OrderModelView(ModelView):
          order_id = request.args.get('id', type=int)
          self._template_args['order'] = get_order_by_id(db, order_id)
          return super(OrderModelView, self).edit_view()
+    
+    def delete_model(self, model):
 
+        result = True
+        if model.order_items:  # Check if there are any children
+            flash(f"Cannot delete order [ID:{model.id}] because it has order items.", "error")
+            result = False
+        if result:
+            return super().delete_model(model)
+        else:
+            self.session.rollback()
+            return result
 
+@restrict_access
 class ReviewModel(ModelView):
 
     form_create_rules = ('order_item', 'content', 'rating') 
