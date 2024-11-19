@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField, PasswordField, DateField, DateTimeField, TextAreaField, SelectField, EmailField, FloatField
 from wtforms.validators import DataRequired, Email, Regexp, EqualTo, ValidationError, NumberRange, Length, Optional, InputRequired, AnyOf
 # from Models.user import User
+from Misc.constants import password_regex
 
 
 # def email_unique(form, field):
@@ -27,9 +28,8 @@ class UserForm(FlaskForm):
         Length(min=8, max=20, message='Min 8 characters required'),
         EqualTo('confirm_password', message='Passwords must match'),
         Optional(),
-        Regexp(
-            r'^(?=.*[A-Z])', message='Password must contain at least one uppercase letter'),
-        Regexp(r'^(?=.*[!@#$%^&*(),.?":{}|<>])',
+        
+        Regexp(r'{password_regex}'),
                message='Password must contain at least one special character')
     ])
     confirm_password = PasswordField('Confirm Password',
