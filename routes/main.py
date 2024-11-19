@@ -136,39 +136,36 @@ def register_main_routes(app, db:SQLAlchemy):
             email = request.form['register_email']
             password = request.form['register_password']
             confirm_password = request.form['register_confirm_password']
-            # validations
+
+            if not first_name or not last_name or not email or not password or not confirm_password:
+                flash('Please fill all fields', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
             if password != confirm_password:
-                flash('Passwords do not match.', 'danger')
-                return redirect(url_for('main.login'))
+                flash('Passwords do not match.', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
+
             existing_user = get_user_by_email(db, email)
             if existing_user:
-                flash(
-                    'Email is already registered. Please use a different email.', 'danger')
-                return redirect(url_for('main.login'))
+                flash('Email is already registered. Please use a different email.', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
+
             # create
             new_user = User(
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                token='',  # You may want to set a token for email verification
-                verified_at=None,
-                is_admin=False,
-                is_deleted=False,
-                blocked_until=None,
-                failed_count=0,
-                loyalty_id=None
             )
             new_user.set_password(password)
             result = create_user(db, new_user)
             if result is not True:
                 flash(result, 'danger')
-                return redirect(url_for('main.login'))
             else:
                 # send user verification email
                 send_verification_email(new_user)
                 flash('Your account has been created successfully!', 'success')
                 return redirect(url_for('main.registration_success'))
-        return redirect(url_for('main.login'))
+            
+        return render_template('login.html', registration=True, form=request.form)
 
     @main.route('/registration_success', methods=['GET', 'POST'])
     def registration_success():
