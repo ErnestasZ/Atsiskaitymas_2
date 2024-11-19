@@ -472,7 +472,7 @@ def register_main_routes(app, db:SQLAlchemy):
         if not order_id:
             return render_template('checkout.html', order_id=order_id)
 
-        order = ador.get_order_with_user_by_id(int(order_id))
+        order = get_order_by_id(int(order_id))
 
         if order.total_amount > current_user.get_balance():
             flash('Neužtenka lėšų apmokėjimui!', 'warning')
@@ -483,10 +483,7 @@ def register_main_routes(app, db:SQLAlchemy):
         if isinstance(paiment, Wallet_transaction):
             flash('Mokėjimas atliktas sekmingai', 'success')
         else: flash(paiment, 'error')
-
-        items, order, _status = ador.get_order_items(order_id)
-        return render_template('order_items.html', order=order, items=items)
-        # return render_template('order_items.html', order=order, items=order.order_items)
+        return render_template('order_items.html', order=order, items=order.order_items)
 
     # register blueprint
 
