@@ -50,7 +50,7 @@ def update_cart_product(db:SQLAlchemy, cart_product:Cart_product) -> bool | str:
     Returns [bool] True on success
     Returns [str] error message on fail
     """
-    qry = select(Cart_product).where(car)
+    qry = select(Cart_product).where(cart_product)
 
 def delete_cart_product(db, cart_product:Cart_product) -> bool | str:
     """
