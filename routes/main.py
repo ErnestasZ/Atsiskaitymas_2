@@ -55,10 +55,17 @@ def register_main_routes(app, db):
 
         products = get_products(
             db, {sort['key']: sort['order']}, name=search_option, price=[min_price, max_price])
+        
+        loyalty_discount = get_loyalty_discount()
 
         for product in products:
-            product.average_rating = get_average_rating(
-                product)  # Get rating for each product in list
+            product.average_rating = get_average_rating(product)  # Get rating for each product in list
+            
+            # Apply loyalty discount to product price
+            if loyalty_discount > 0:
+                product.discounted_price = product.price * (1 - loyalty_discount / 100)
+            else:
+                product.discounted_price = product.price
 
         no_products_message = None
         if not products:
@@ -293,10 +300,10 @@ def register_main_routes(app, db):
         session_id = get_session_id()
         cart_products = Cart_product.query.filter_by(
             session_id=session_id).all()
-        total_price = sum(item.product.price *
-                          item.qty for item in cart_products)
+        total_price = sum(item.product.price * item.qty for item in cart_products)
         total_price = round(total_price, 2)
-        return render_template('cart.html', cart_products=cart_products, total_price=total_price)
+        loyalty_discount = get_loyalty_discount()
+        return render_template('cart.html', cart_products=cart_products, total_price=total_price, loyalty_discount=loyalty_discount)
 
     @main.route('/update_cart', methods=['POST'])
     def update_cart():
