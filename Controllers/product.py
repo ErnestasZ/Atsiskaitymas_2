@@ -1,5 +1,5 @@
 from sqlalchemy import select, not_, and_, or_
-from Models import Product, Review, Order_item
+from Models import Product, Review, Order_item, Order
 from Controllers import db_provider as dbp
 from Misc.my_logger import log_crud_operation
 
@@ -7,12 +7,12 @@ session = dbp.db.session
 
 @log_crud_operation
 def get_product_by_id(id: int) -> (Product | None):
-    stmt = select(Product).where(Product.id == id)
+    stmt = select(Product).where(Product.id == id).where(Product.is_active)
     return session.execute(stmt).scalars().first()
 
 @log_crud_operation
 def get_all_products() -> list[Product]:
-    return session.execute(select(Product)).scalars().all()
+    return session.execute(select(Product).where(Product.is_active)).scalars().all()
 
 @log_crud_operation
 def update_product(id: int = None, product: Product = None, **kwargs) -> (Product | Exception):
@@ -30,7 +30,7 @@ def add_product(**kwargs) -> (Product | Exception):
     return dbp.push_db_record(Product, **kwargs)
 
 @log_crud_operation
-def get_average_rating(product):
+def get_average_rating(product:Product):
     # Calculate total rating by summing al review ratings product.order_items
     total_rating = sum(review.rating for order_item in product.order_items for review in order_item.reviews if review.rating is not None)
     # Count total num of reviews with rating
@@ -42,7 +42,7 @@ def get_average_rating(product):
     return None
 
 @log_crud_operation
-def get_reviews(product):
+def get_reviews(product:Product):
     reviews = []     # Create empty list of reviews 
     for order_item in product.order_items: 
         for review in order_item.reviews: 
@@ -50,6 +50,8 @@ def get_reviews(product):
             reviews.append(review)
     return reviews
 
+def reduce_stock(order: Order):
+    ...
 
 @log_crud_operation
 def get_products(db, sort: dict[str, str], name: str = None, price: list[float] = None) -> list[Product]:
