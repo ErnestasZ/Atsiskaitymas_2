@@ -4,40 +4,40 @@ Due November 20, 2024 8:00 AM
 Instructions
 Sukurkite internetinės parduotuvės apsipirkimo sistemą, su flask/streamlit(rekomenduojama flask)  ir sqlAlchemy kuroje būtų:
  
-	1.	Prisijungimas (neteisingai mėginant prisijungti 3 ar daugiau kartų turėtų būti užblokuotas prisijungimas)
-	2.	Registracija
-	3.	Galimybę peržiūrėti savo turimą balansą
-	4.	Galimybę papildyti savo balansą
-	5.	Peržiūrėti sistemoje esančias prekes
-	6.	Peržiūrėti prekes pagal įvairius rikiavimo/filtravimo būdus, pagal kainą, pagal įvertinimus ir t.t
-	7.	Įsidėti sistemoje esančias prekes į krepšelį ir jį išsaugoti
-	8.	Nusipirkti krepšelyje esančias prekes
-	9.	Nusipirkus prekę galima palikti atsiliepimą apie prekę ir įvertinimu 1-5 žvaigždutėmis
-	10.	Atsijungti
+	1.	Prisijungimas (neteisingai mėginant prisijungti 3 ar daugiau kartų turėtų būti užblokuotas prisijungimas) - Padarytas, Domantas pratestuoja ir pataiso
+	2.	Registracija - Padaryta
+	3.	Galimybę peržiūrėti savo turimą balansą - Padaryta
+	4.	Galimybę papildyti savo balansą - Padaryta
+	5.	Peržiūrėti sistemoje esančias prekes - Padaryta
+	6.	Peržiūrėti prekes pagal įvairius rikiavimo/filtravimo būdus, pagal kainą, pagal įvertinimus ir t.t - Padaryta
+	7.	Įsidėti sistemoje esančias prekes į krepšelį ir jį išsaugoti - Padaryta
+	8.	Nusipirkti krepšelyje esančias prekes - Nepadarytas Jevgenijus
+	9.	Nusipirkus prekę galima palikti atsiliepimą apie prekę ir įvertinimu 1-5 žvaigždutėmis - Padaryta
+	10.	Atsijungti - Pataisyti, Gytis - krepselis issitrina atsijungus
 Administratoriaus galimybės
-	1.	Pridėti naują prekę 
-	2.	Papildyti esamų prekių kiekį
-	3.	Išimti prekę iš prekybos 
-	4.	Peržiūrėti sistemos naudotojų sąrašą.
-	5.	Ištrinti sistemos naudotojus
-	6.	Peržiūrėti statistika apie prekes. Kiek prekių nupirkta kurią dieną, už kiek nupirkta, kurie mėnesiai pelningiausi, kurios prekės geriausiai įvertintos.
+	1.	Pridėti naują prekę - Padaryta
+	2.	Papildyti esamų prekių kiekį - Padaryta
+	3.	Išimti prekę iš prekybos - Padaryta
+	4.	Peržiūrėti sistemos naudotojų sąrašą. - Padaryta
+	5.	Ištrinti sistemos naudotojus - Padaryta
+	6.	Peržiūrėti statistika apie prekes. Kiek prekių nupirkta kurią dieną, už kiek nupirkta, kurie mėnesiai pelningiausi, kurios prekės geriausiai įvertintos. Ideti prie admin - Ernestas
 Papildomi reikalavimai:
-	1.	Visur naudokite Try, except (visos klaidos turi būti pagautos ir išvesti logiški klaidos pranešimai).
-	2.	Duomenys turi išlikti tarp programos paleidimų, tam naudokite duomenų bazę, galite naudoti bet kokią duomenų bazę.
-	3.	Sistema privalo turėti aiškią ir tvarkingą struktūra (static, templates, crud operations (controllers/services) (atskiriems modeliams atskiri crud failai). Nepamirškite šių failų sudėti į aplankus.
-	4.	Visur turi būti patikrinimai (pvz naudotojas negalėtų nusipirkti prekės kurios nėra), arba negali nusipirkti jeigu neturi tam lėšų.
-	5.	Privalote naudoti Github bent su tokiomis šakomis (Master, Development ir task šakos (pvz AddingLoginFunctionality šaka). Turės būti, bent 10 commitų, per komandą. Negali būti tiesioginių commitų į Master šaką (apsauga yra mokama, dėl to apsimeskite, kad ji yra). Sukurkite, bent kelis pull requestus
-	6.	Privalote panaudoti migracijas.
-	7.	Privaloma naudoti įrankį užduočių valdymui Jira/trello/kitus įrankius
-	8.	Būtinai padarykite logerį (visos klaidos privalo būti išlogintos). Veiksmai, taip pat turėtų būti užloginti (CRUD operacijos, pvz tas ir tas nusipirko tokią prekę sėkmingai, tas ir tas sukūrė prekę sėkmingai).
+	1.	Visur naudokite Try, except (visos klaidos turi būti pagautos ir išvesti logiški klaidos pranešimai). - Kiekvienas uzdeda decoratoriu
+	2.	Duomenys turi išlikti tarp programos paleidimų, tam naudokite duomenų bazę, galite naudoti bet kokią duomenų bazę. - Padaryta
+	3.	Sistema privalo turėti aiškią ir tvarkingą struktūra (static, templates, crud operations (controllers/services) (atskiriems modeliams atskiri crud failai). Nepamirškite šių failų sudėti į aplankus. - Padaryta
+	4.	Visur turi būti patikrinimai (pvz naudotojas negalėtų nusipirkti prekės kurios nėra), arba negali nusipirkti jeigu neturi tam lėšų. - Jevgenijus
+	5.	Privalote naudoti Github bent su tokiomis šakomis (Master, Development ir task šakos (pvz AddingLoginFunctionality šaka). Turės būti, bent 10 commitų, per komandą. Negali būti tiesioginių commitų į Master šaką (apsauga yra mokama, dėl to apsimeskite, kad ji yra). Sukurkite, bent kelis pull requestus. - pull request Gytis
+	6.	Privalote panaudoti migracijas. - Padaryta
+	7.	Privaloma naudoti įrankį užduočių valdymui Jira/trello/kitus įrankius. - Padaryta
+	8.	Būtinai padarykite logerį (visos klaidos privalo būti išlogintos). Veiksmai, taip pat turėtų būti užloginti (CRUD operacijos, pvz tas ir tas nusipirko tokią prekę sėkmingai - Jevgenijus, tas ir tas sukūrė prekę sėkmingai - Gytis).
 Bonus points:
-	1.	Padarykite prisijungimo blokavimą ant laikmačio. T.Y neteisingai įvedus 3 kartus neleidžiama mėginti 5 minutes, neteisingai įvedus 4 kartą, 1 valandą ir t.t.
-	2.	Nuolaidos lojaliems klientams (lojalus, pirkęs daugiau, nei 3 kartus per tam tikrą laiką, arba išleidęs daugiau nei 500€) (pirkimo metu)
-	3.	Administratoriams galimybę pridėti ir keisti nuolaidas.
-	4.	Slaptažodis turi turėti reikalavimus (panaudokite Regex) (import re).
-	5.	Slaptažodis turėtų būti hashuotas.
-	6.	Implementuokite el pašto patvirtinimo sistemą, taip pat siųskite laiškus naudotojams su reklamomis.
-	7.	Pinigų pridėjimas į sąskaitą būtų iš tikrųjų įgyvendintas (pavyzdžiui braintree ir kiti tiekėjai turi testine aplinką, kurią galima įdiegti ir veikia su netikromis kortelėmis ir apmokėjimais) 
+	1.	Padarykite prisijungimo blokavimą ant laikmačio. T.Y neteisingai įvedus 3 kartus neleidžiama mėginti 5 minutes, neteisingai įvedus 4 kartą, 1 valandą ir t.t. - Padaryta
+	2.	Nuolaidos lojaliems klientams (lojalus, pirkęs daugiau, nei 3 kartus per tam tikrą laiką, arba išleidęs daugiau nei 500€) (pirkimo metu) - Jevgenijus
+	3.	Administratoriams galimybę pridėti ir keisti nuolaidas. - Padaryta
+	4.	Slaptažodis turi turėti reikalavimus (panaudokite Regex) (import re). Registracijoje - Daumantas
+	5.	Slaptažodis turėtų būti hashuotas. - Padaryta
+	6.	Implementuokite el pašto patvirtinimo sistemą, taip pat siųskite laiškus naudotojams su reklamomis. - Daumantas
+	7.	Pinigų pridėjimas į sąskaitą būtų iš tikrųjų įgyvendintas (pavyzdžiui braintree ir kiti tiekėjai turi testine aplinką, kurią galima įdiegti ir veikia su netikromis kortelėmis ir apmokėjimais) - Ernestas
 Rekomendacijos
 	1.	Nenaudokite viskam chatGPT - bus daug klaidų, pasitarti galima, bet nekopijuoti aklai visko (jeigu nemokėsite paaiškinti, kažkurios dalies, bus minus balas)
 	2.	Naudokite Flask bibliotekas, kaip flask-login ir t.t
