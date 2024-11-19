@@ -308,7 +308,7 @@ class ProductView(ModelView):
             result = False
         if model.cart_products:
             flash(f"Cannot delete {
-                  model.email} because it has cart objects with this product.", "error")
+                  model.title} because it has cart objects with this product.", "error")
             result = False
         if result:
             return super().delete_model(model)
