@@ -86,7 +86,6 @@ def get_cart_product(db:SQLAlchemy, session_id:int, product_id:int, user_id:int 
         qry = qry.where(Cart_product.session_id == session_id).where(Cart_product.user_id == None)
 
     qry = qry.where(Cart_product.product_id == product_id)
-    print(qry)
     return db.session.execute(qry).scalars().one_or_none()
     
 

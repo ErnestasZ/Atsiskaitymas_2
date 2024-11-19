@@ -45,7 +45,7 @@
                         </td>
                         
                         <td>
-                            <button type="submit" class="btn btn-danger" name="remove_{{ item.id }}">Remove</button>
+                            <a href="{{ url_for('main.remove_cart_item', product_id=item.product_id) }}"  class="btn btn-danger"   name="remove_{{ item.product_id }}">Remove</a>
                         </td>
                     </tr>
                     {% endfor %}
