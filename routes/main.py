@@ -439,7 +439,7 @@ def register_main_routes(app, db:SQLAlchemy):
                 try:
                     order.total_amount = total_amount
                     db.session.add(order)
-                    db.session.Commit()
+                    db.session.commit()
                     msg = "Orderis sukurtas sekmingai"
                 except Exception as err:
                     msg = err
@@ -447,7 +447,7 @@ def register_main_routes(app, db:SQLAlchemy):
                     return render_template('order_items.html', order=order, items=order.order_items)
         else:
             msg = "Krepšelyje nėra prekių!"
-        return render_template('checkout.html', msg)
+        return render_template('checkout.html', message=msg)
 
     # register blueprint
 
