@@ -136,39 +136,36 @@ def register_main_routes(app, db:SQLAlchemy):
             email = request.form['register_email']
             password = request.form['register_password']
             confirm_password = request.form['register_confirm_password']
-            # validations
+
+            if not first_name or not last_name or not email or not password or not confirm_password:
+                flash('Please fill all fields', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
             if password != confirm_password:
-                flash('Passwords do not match.', 'danger')
-                return redirect(url_for('main.login'))
+                flash('Passwords do not match.', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
+
             existing_user = get_user_by_email(db, email)
             if existing_user:
-                flash(
-                    'Email is already registered. Please use a different email.', 'danger')
-                return redirect(url_for('main.login'))
+                flash('Email is already registered. Please use a different email.', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
+
             # create
             new_user = User(
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                token='',  # You may want to set a token for email verification
-                verified_at=None,
-                is_admin=False,
-                is_deleted=False,
-                blocked_until=None,
-                failed_count=0,
-                loyalty_id=None
             )
             new_user.set_password(password)
             result = create_user(db, new_user)
             if result is not True:
                 flash(result, 'danger')
-                return redirect(url_for('main.login'))
             else:
                 # send user verification email
                 send_verification_email(new_user)
                 flash('Your account has been created successfully!', 'success')
                 return redirect(url_for('main.registration_success'))
-        return redirect(url_for('main.login'))
+            
+        return render_template('login.html', registration=True, form=request.form)
 
     @main.route('/registration_success', methods=['GET', 'POST'])
     def registration_success():
@@ -418,13 +415,14 @@ def register_main_routes(app, db:SQLAlchemy):
         cart_items = get_cart(db, session_id, user_id)
         g.cart_quantity = sum(item.qty for item in cart_items) if cart_items else 0
 
-    @main.route('/checkout')
+    @main.route('/checkout/', defaults={'order_id': ''}, methods=['GET'])
+    @main.route('/checkout/<int:order_id>', methods=['GET'])
     @login_required
-    def checkout():
+    def checkout(order_id):
         session_id = get_session_id()
         cart_products = Cart_product.query.filter_by(session_id=session_id).all()
 
-        if cart_products:
+        if not order_id and cart_products:
             fill_user(cart_products, current_user)
             discount = get_loyalty_discount()
             order = Order(user_id=current_user.id, status="Pending", loyalty_discount=discount)
@@ -459,17 +457,36 @@ def register_main_routes(app, db:SQLAlchemy):
                     order.total_amount = total_amount
                     db.session.add(order)
                     db.session.commit()
-
-                    flash('Orderis sukurtas sekmingai', 'success')
+                    reduce_stock(order)
+                    order_id = order.id
+                    flash('Užsakymas sukurtas sekmingai', 'success')
                 except Exception as err:
                     msg = err
                     flash(err, 'error')
-                else:
-                    reduce_stock(order)
-        else:
-            no_errors = False
-            flash('Krepšelyje nėra prekių!', 'warning')
-        return render_template('checkout.html', success=no_errors)
+        return render_template('checkout.html', order_id=order_id)
+
+    @main.route('/payment/<order_id>', methods=['GET'])
+    @login_required
+    def payment(order_id):
+
+        if not order_id:
+            return render_template('checkout.html', order_id=order_id)
+
+        order = ador.get_order_with_user_by_id(int(order_id))
+
+        if order.total_amount > current_user.get_balance():
+            flash('Neužtenka lėšų apmokėjimui!', 'warning')
+            return render_template('checkout.html', order_id=order_id)
+
+        paiment = make_payment(current_user, order)
+
+        if isinstance(paiment, Wallet_transaction):
+            flash('Mokėjimas atliktas sekmingai', 'success')
+        else: flash(paiment, 'error')
+
+        items, order, _status = ador.get_order_items(order_id)
+        return render_template('order_items.html', order=order, items=items)
+        # return render_template('order_items.html', order=order, items=order.order_items)
 
     # register blueprint
 

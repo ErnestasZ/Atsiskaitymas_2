@@ -5,8 +5,7 @@
 {% block content %}
 <h2>Ceckout</h2>
 
-<h2>{{ success }}</h2>
-
 <button type="submit" class="btn btn-primary">Make Payment</button>
+<a href="{{ url_for('main.payment', order_id=order_id) }}" class="btn btn-ss">Make Payment</a>
 
 {% endblock %}
