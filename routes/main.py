@@ -24,11 +24,12 @@ from flask_login import LoginManager
 from Controllers.user import create_user, get_user_by_email, update_user, verify_user_token
 # from flask_mail import Mail
 from Services.mail import send_verification_email
+import json
 
 main = Blueprint('main', __name__, url_prefix='/')
 
 
-def register_main_routes(app, db:SQLAlchemy):
+def register_main_routes(app, db: SQLAlchemy):
 
     @app.errorhandler(404)
     def page_not_found(e):
@@ -55,15 +56,17 @@ def register_main_routes(app, db:SQLAlchemy):
 
         products = get_products(
             db, {sort['key']: sort['order']}, name=search_option, price=[min_price, max_price])
-        
+
         loyalty_discount = get_loyalty_discount()
 
         for product in products:
-            product.average_rating = get_average_rating(product)  # Get rating for each product in list
-            
+            product.average_rating = get_average_rating(
+                product)  # Get rating for each product in list
+
             # Apply loyalty discount to product price
             if loyalty_discount > 0:
-                product.discounted_price = product.price * (1 - loyalty_discount / 100)
+                product.discounted_price = product.price * \
+                    (1 - loyalty_discount / 100)
             else:
                 product.discounted_price = product.price
 
@@ -197,7 +200,7 @@ def register_main_routes(app, db:SQLAlchemy):
     @main.route('/my-account')
     @login_required
     def my_acc():
-        
+
         return render_template('my_account.html')
 
     @main.route('/my-account/orders')
@@ -251,8 +254,9 @@ def register_main_routes(app, db:SQLAlchemy):
         if form.validate_on_submit():
             # pass user id
             myac.add_balance(current_user.id, form.balance.data)
-            flash('Balance updated successfully.', 'main success')
-            return redirect(url_for('main.my_balance'))
+            # flash('Balance updated successfully.', 'main success')
+            # return redirect(url_for('main.my_balance'))
+            return redirect(url_for('stripe_payment.checkout', balance=json.dumps(form.balance.data)))
         return render_template('balance.html', balance=balance, form=form)
 
     @main.route('/my-account/user-details', methods=['GET', 'POST'])
@@ -279,25 +283,27 @@ def register_main_routes(app, db:SQLAlchemy):
     @main.route('/add_to_cart/<int:product_id>', methods=['POST'])
     def add_to_cart(product_id):
         try:
-            qty = int(request.form.get('qty', 1)) # Default quantity if not passed
+            # Default quantity if not passed
+            qty = int(request.form.get('qty', 1))
         except:
             flash('Quantity must be number', 'error')
             return redirect(request.referrer)
-        
+
         session_id = get_session_id()
         product = get_product_by_id(product_id)
         if not product:
             flash('Product you are trying to add is not available.', 'warning')
             return redirect(request.referrer)
-        
+
         if current_user.is_authenticated:
             user_id = current_user.id
-            cart_product = get_cart_product(db, session_id=None, product_id=product_id, user_id=user_id)
+            cart_product = get_cart_product(
+                db, session_id=None, product_id=product_id, user_id=user_id)
         else:
             user_id = None
-            cart_product = get_cart_product(db, session_id=session_id, product_id=product_id)
+            cart_product = get_cart_product(
+                db, session_id=session_id, product_id=product_id)
 
-        
         if cart_product:
             qty = cart_product.qty + int(qty)
             if qty > product.stock:
@@ -308,13 +314,14 @@ def register_main_routes(app, db:SQLAlchemy):
         else:
             if qty > product.stock:
                 qty = product.stock
-            new_cart_product = Cart_product(session_id=session_id, user_id=user_id, product_id=product_id, qty=qty)
+            new_cart_product = Cart_product(
+                session_id=session_id, user_id=user_id, product_id=product_id, qty=qty)
             if add_cart_product(db, new_cart_product):
                 flash('Product added to cart.', 'success')
             else:
-                flash('Error occured while adding product. Please contact administrator.', 'warning')
+                flash(
+                    'Error occured while adding product. Please contact administrator.', 'warning')
         return redirect(request.referrer)
-        
 
     @main.route('/cart')
     def cart():
@@ -324,7 +331,8 @@ def register_main_routes(app, db:SQLAlchemy):
             session_id = get_session_id()
             cart_products = get_cart(db, session_id)
 
-        total_price = sum(item.product.price * item.qty for item in cart_products)
+        total_price = sum(item.product.price *
+                          item.qty for item in cart_products)
         total_price = round(total_price, 2)
         loyalty_discount = get_loyalty_discount()
         return render_template('cart.html', cart_products=cart_products, total_price=total_price, loyalty_discount=loyalty_discount)
@@ -332,26 +340,28 @@ def register_main_routes(app, db:SQLAlchemy):
     @main.route('/remove_cart_item/<int:product_id>', methods=['GET'])
     def remove_cart_item(product_id):
         session_id = get_session_id()  # Get session ID
-            
+
         if current_user.is_authenticated:
             user_id = current_user.id
-            cart_product = get_cart_product(db, session_id=None, product_id=product_id, user_id=user_id)
+            cart_product = get_cart_product(
+                db, session_id=None, product_id=product_id, user_id=user_id)
         else:
             user_id = None
-            cart_product = get_cart_product(db, session_id=session_id, product_id=product_id)
-            
+            cart_product = get_cart_product(
+                db, session_id=session_id, product_id=product_id)
+
         if not cart_product:
             print('qwdas')
             flash(f'Product you are trying to remove is not in your cart', 'warning')
             return redirect(url_for('main.cart'))
 
-
-        print(cart_product)             
-        flash(f'Product {cart_product.product.title} was removed from your cart', 'success')
+        print(cart_product)
+        flash(
+            f'Product {cart_product.product.title} was removed from your cart', 'success')
         db.session.delete(cart_product)
         db.session.commit()
         return redirect(url_for('main.cart'))
-    
+
     @main.route('/update_cart', methods=['POST'])
     def update_cart():
         session_id = get_session_id()  # Get session ID
@@ -365,18 +375,21 @@ def register_main_routes(app, db:SQLAlchemy):
             if qty < 1:
                 flash('Quantity must be 1 or higher', 'error')
                 return redirect(request.referrer)
-            
+
             product_id = int(key.split('_')[1])
             product = get_product_by_id(product_id)
             if current_user.is_authenticated:
                 user_id = current_user.id
-                cart_product = get_cart_product(db, session_id=None, product_id=product_id, user_id=user_id)
+                cart_product = get_cart_product(
+                    db, session_id=None, product_id=product_id, user_id=user_id)
             else:
                 user_id = None
-                cart_product = get_cart_product(db, session_id=session_id, product_id=product_id)
-            
+                cart_product = get_cart_product(
+                    db, session_id=session_id, product_id=product_id)
+
             if not product:
-                flash(f'Product {cart_product.product.title} is no longer available and was removed from your cart', 'warning')
+                flash(f'Product {
+                      cart_product.product.title} is no longer available and was removed from your cart', 'warning')
                 db.session.delete(cart_product)
                 db.session.commit
                 continue
@@ -386,11 +399,13 @@ def register_main_routes(app, db:SQLAlchemy):
                 if cart_product:
                     if qty > product.stock:
                         qty = product.stock
-                        flash(f'We do not have enough product {cart_product.product.title} in stock quantity was automatically updated to {qty}', 'warning')
+                        flash(f'We do not have enough product {
+                              cart_product.product.title} in stock quantity was automatically updated to {qty}', 'warning')
                     if cart_product.qty != qty:
                         cart_product.qty = qty
                         db.session.commit()
-                        flash(f'Product {cart_product.product.title} quantity was updated successfully to {qty}', 'warning')
+                        flash(f'Product {cart_product.product.title} quantity was updated successfully to {
+                              qty}', 'warning')
         return redirect(url_for('main.cart'))
 
     @main.before_app_request
@@ -406,14 +421,16 @@ def register_main_routes(app, db:SQLAlchemy):
     @login_required
     def checkout():
         session_id = get_session_id()
-        cart_products = Cart_product.query.filter_by(session_id=session_id).all()
+        cart_products = Cart_product.query.filter_by(
+            session_id=session_id).all()
 
         if cart_products:
             fill_user(cart_products, current_user)
             discount = get_loyalty_discount()
-            order = Order(user_id=current_user.id, status="Pending", loyalty_discount=discount)
+            order = Order(user_id=current_user.id,
+                          status="Pending", loyalty_discount=discount)
             db.session.add(order)
-            
+
             no_errors = True
             total_amount = 0
 
@@ -421,7 +438,7 @@ def register_main_routes(app, db:SQLAlchemy):
                 if item.qty > item.product.stock:
                     no_errors = False
                     flash('Prekių kiekis viršija kiekį esanti sandėlyje', 'warning')
-                
+
                 unit_price = item.product.price * (1 - discount / 100)
                 total_price = unit_price * item.qty
                 order_item = Order_item(order_id=order.id,

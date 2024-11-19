@@ -6,6 +6,7 @@ from .order import *
 from .order_item import *
 from .review import *
 from .wallet_transaction import *
+from .payment import *
 
 # All imports are implemented here, no need to import a specific function!
 # Add module imports similar to the above.
