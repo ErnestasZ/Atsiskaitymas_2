@@ -413,12 +413,14 @@ def register_main_routes(app, db:SQLAlchemy):
             discount = get_loyalty_discount()
             order = Order(user_id=current_user.id, status="Pending", loyalty_discount=discount)
             db.session.add(order)
-            msg = ""
             
+            no_errors = True
             total_amount = 0
+
             for item in cart_products:
                 if item.qty > item.product.stock:
-                    msg = "Prekių kiekis viršija kiekį esanti sandėlyje"
+                    no_errors = False
+                    flash('Prekių kiekis viršija kiekį esanti sandėlyje', 'warning')
                 
                 unit_price = item.product.price * (1 - discount / 100)
                 total_price = unit_price * item.qty
@@ -433,21 +435,25 @@ def register_main_routes(app, db:SQLAlchemy):
                 db.session.delete(item)
 
             if total_amount > current_user.get_balance():
-                msg = "Neužtenka lėšų apmokėjimui!"
+                no_errors = False
+                flash('Neužtenka lėšų apmokėjimui!', 'warning')
 
-            if not msg:
+            if no_errors:
                 try:
                     order.total_amount = total_amount
                     db.session.add(order)
                     db.session.commit()
-                    msg = "Orderis sukurtas sekmingai"
+
+                    flash('Orderis sukurtas sekmingai', 'success')
                 except Exception as err:
                     msg = err
+                    flash(err, 'error')
                 else:
-                    return render_template('order_items.html', order=order, items=order.order_items)
+                    reduce_stock(order)
         else:
-            msg = "Krepšelyje nėra prekių!"
-        return render_template('checkout.html', message=msg)
+            no_errors = False
+            flash('Krepšelyje nėra prekių!', 'warning')
+        return render_template('checkout.html', success=no_errors)
 
     # register blueprint
 
