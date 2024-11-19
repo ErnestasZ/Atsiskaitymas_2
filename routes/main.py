@@ -415,75 +415,74 @@ def register_main_routes(app, db:SQLAlchemy):
         cart_items = get_cart(db, session_id, user_id)
         g.cart_quantity = sum(item.qty for item in cart_items) if cart_items else 0
 
-    @main.route('/checkout/', defaults={'order_id': ''}, methods=['GET'])
-    @main.route('/checkout/<int:order_id>', methods=['GET'])
+    @main.route('/checkout', methods=['GET'])
     @login_required
-    def checkout(order_id):
+    def checkout():
         session_id = get_session_id()
         cart_products = Cart_product.query.filter_by(session_id=session_id).all()
 
-        if not order_id and cart_products:
-            fill_user(cart_products, current_user)
-            discount = get_loyalty_discount()
-            order = Order(user_id=current_user.id, status="Pending", loyalty_discount=discount)
-            db.session.add(order)
+        if not cart_products:
+            return redirect(url_for('main.cart'))
+        
+        fill_user(cart_products, current_user)
+        discount = get_loyalty_discount()
+        order = Order(user_id=current_user.id, status="Pending", loyalty_discount=discount)
+        db.session.add(order)
             
-            no_errors = True
-            total_amount = 0
+        no_errors = True
+        total_amount = 0
 
-            for item in cart_products:
-                if item.qty > item.product.stock:
-                    no_errors = False
-                    flash('Prekių kiekis viršija kiekį esanti sandėlyje', 'warning')
-                
-                unit_price = item.product.price * (1 - discount / 100)
-                total_price = unit_price * item.qty
-                order_item = Order_item(order_id=order.id,
-                                        product_id=item.product.id,
-                                        qty=item.qty,
-                                        product_name=item.product.title,
-                                        unit_price=unit_price,
-                                        total_price=total_price)
-                total_amount += total_price
-                db.session.add(order_item)
-                db.session.delete(item)
-
-            if total_amount > current_user.get_balance():
+        for item in cart_products:
+            if item.qty > item.product.stock:
                 no_errors = False
-                flash('Neužtenka lėšų apmokėjimui!', 'warning')
+                flash('Prekių kiekis viršija kiekį esanti sandėlyje', 'warning')
+                
+            unit_price = item.product.price * (1 - discount / 100)
+            total_price = unit_price * item.qty
+            order_item = Order_item(order_id=order.id,
+                                    product_id=item.product.id,
+                                    qty=item.qty,
+                                    product_name=item.product.title,
+                                    unit_price=unit_price,
+                                    total_price=total_price)
+            total_amount += total_price
+            db.session.add(order_item)
+            db.session.delete(item)
 
-            if no_errors:
-                try:
-                    order.total_amount = total_amount
-                    db.session.add(order)
-                    db.session.commit()
-                    reduce_stock(order)
-                    order_id = order.id
-                    flash('Užsakymas sukurtas sekmingai', 'success')
-                except Exception as err:
-                    msg = err
-                    flash(err, 'error')
-        return render_template('checkout.html', order_id=order_id)
+        if total_amount > current_user.get_balance():
+            no_errors = False
+            flash('Neužtenka lėšų apmokėjimui!', 'warning')
+
+        if no_errors:
+            try:
+                order.total_amount = total_amount
+                db.session.add(order)
+                db.session.commit()
+                reduce_stock(order)
+                flash('Užsakymas sukurtas sekmingai', 'success')
+            except Exception as err:
+                flash(err, 'error')
+            else: return render_template('checkout.html', order_id=order.id)
+        return redirect(url_for('main.cart'))
 
     @main.route('/payment/<order_id>', methods=['GET'])
+    @main.route('/payment/', defaults={'order_id': ''}, methods=['GET'])
     @login_required
     def payment(order_id):
+        if order_id.isnumeric():
+            order = get_order_by_id(int(order_id))
 
-        if not order_id:
-            return render_template('checkout.html', order_id=order_id)
-
-        order = get_order_by_id(int(order_id))
-
-        if order.total_amount > current_user.get_balance():
-            flash('Neužtenka lėšų apmokėjimui!', 'warning')
-            return render_template('checkout.html', order_id=order_id)
-
-        paiment = make_payment(current_user, order)
-
-        if isinstance(paiment, Wallet_transaction):
-            flash('Mokėjimas atliktas sekmingai', 'success')
-        else: flash(paiment, 'error')
-        return render_template('order_items.html', order=order, items=order.order_items)
+            if order and order.status == "Pending":
+                if order.total_amount <= current_user.get_balance():
+                    paiment = make_payment(current_user, order)
+                    
+                    if isinstance(paiment, Wallet_transaction):
+                        flash('Mokėjimas atliktas sekmingai.', 'success')
+                        return redirect(url_for('main.my_order_items', order_id=order.id))
+                    else: flash(paiment, 'error')
+                else: flash('Neužtenka lėšų apmokėjimui!', 'warning')
+            else: flash('Užsakymas nerastas arba jau apmokėtas!', 'warning')
+        return redirect(url_for('main.cart'))
 
     # register blueprint
 
