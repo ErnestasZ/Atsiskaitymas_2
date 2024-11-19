@@ -1,0 +1,153 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+
+<!-- menu  -->
+<div class="">
+    <a href="/admin/" class="">Statistic ></a>
+</div>
+<div class="">
+    <a href="/admin/dash/orders" class="">Orders sales by date ></a>
+</div>
+<div class="">
+    <a href="/admin/dash/items" class="">Items sales by date ></a>
+</div>
+
+{% if month_sales %}
+<h2>Top 10 month:</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Place</th>
+            <th>Year-Month</th>
+            <th>Total amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for month in month_sales %}
+        <tr>
+            <td>
+                {{loop.index}}
+            </td>
+            <td>
+                {{month.month}}
+            </td>
+            <td>
+                {{month.total_amount}}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<h2>No orders found for this month.</h2>
+{% endif %}
+
+{% if best_rated %}
+<h2>Top 10 best rated items:</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Place</th>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Rating</th>
+            <th>Review amount</th>
+            <th>Price</th>
+            <th>Sales qty</th>
+            <th>Total Amount</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for rate in best_rated %}
+        <tr>
+            <td>
+                {{loop.index}}
+            </td>
+            <td>
+                {{rate.product_id}}
+            </td>
+            <td>
+                {{rate.product_name}}
+            </td>
+            <td>
+                {{rate.average_rating}}
+            </td>
+            <td>
+                {{rate.review_count}}
+            </td>
+            <td>
+                {{rate.price}}
+            </td>
+            <td>
+                {{rate.sales_qty}}
+            </td>
+            <td>
+                {{rate.total}}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<h2>No orders found.</h2>
+{% endif %}
+
+
+
+{% if best_sales %}
+<h2>Top 10 best sales items:</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Place</th>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Rating</th>
+            <th>Review amount</th>
+            <th>Price</th>
+            <th>Sales qty</th>
+            <th>Total Amount</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for sale in best_sales %}
+        <tr>
+            <td>
+                {{loop.index}}
+            </td>
+            <td>
+                {{sale.product_id}}
+            </td>
+            <td>
+                {{sale.product_name}}
+            </td>
+            <td>
+                {{sale.average_rating}}
+            </td>
+            <td>
+                {{sale.review_count}}
+            </td>
+            <td>
+                {{sale.price}}
+            </td>
+            <td>
+                {{sale.sales_qty}}
+            </td>
+            <td>
+                {{sale.total}}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<h2>No orders found.</h2>
+{% endif %}
+
+{% endblock %}

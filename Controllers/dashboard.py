@@ -84,7 +84,7 @@ def get_sales_by_month():
         func.sum(Order.total_amount).label('total_amount')
     ) \
         .group_by(func.strftime('%Y-%m', Order.created_at))  \
-        .order_by(func.strftime('%Y-%m', Order.created_at)).all()
+        .order_by(func.strftime('%Y-%m', func.sum(Order.total_amount))).all()
 
     return month_sales
 
