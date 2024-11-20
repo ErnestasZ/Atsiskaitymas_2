@@ -26,7 +26,7 @@ from Controllers.user import create_user, get_user_by_email, update_user, verify
 from Services.mail import send_verification_email
 import json
 import re
-
+from Misc.my_logger import my_logger
 
 def is_valid_password(password):
     password_regex = r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+={}\[\]:;"\'<>,.?/`~\\|]).{6,}$'
@@ -532,6 +532,7 @@ def register_main_routes(app, db: SQLAlchemy):
     
     @main.route('/uzduotis/asmenine', methods=['GET', 'POST'])
     def uzduotis():
+        my_logger.info("Endpoint '/uzduotis/asmenine' was called.")
         # return render_template('index.html')
         return redirect(url_for('main.index'))
     
