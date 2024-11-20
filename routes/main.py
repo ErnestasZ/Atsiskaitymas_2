@@ -56,6 +56,10 @@ def register_main_routes(app, db: SQLAlchemy):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
+    @main.route('/uzduotis/asmenine', methods=['GET', 'POST'])
+    def uzduotis_2():
+        return redirect(url_for('main.index'))
+
     @main.route('/')
     def index():
         search_option = request.args.get('search', '').strip()
