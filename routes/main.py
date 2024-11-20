@@ -529,9 +529,12 @@ def register_main_routes(app, db: SQLAlchemy):
             else:
                 flash('Užsakymas nerastas arba jau apmokėtas!', 'warning')
         return redirect(url_for('main.cart'))
+    
+    # from Misc.my_logger import my_logger
 
     @main.route('/uzduotis/asmenine', methods=['GET', 'POST'])
     def asmenine():
+        my_logger.info("Puslapis /uzduotis/asmenine nukreipia į pagrindinį!")
         return redirect(url_for('main.index'))
             
     # register blueprint
