@@ -6,10 +6,10 @@
 <div class="container my-5">
     <h2 class="mb-5 text-center">Registration / Login</h2>
     <div class="row" id="registration-forms">
-        <div class="col-md-6 mb-3" id="login-form" style="display: block;">
+        <div class="col-md-6 mb-3" id="login-form" style="display: {% if registration %} none {% else %} block {% endif %};">
             <h2 class="text-center mb-4">Login</h2>
             <form action="{{ url_for('main.login') }}" method="POST">     
-                {% with messages = get_flashed_messages() %}
+                <!-- {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         <div class="alert alert-danger">
                             {% for message in messages %}
@@ -17,7 +17,7 @@
                             {% endfor %}
                         </div>
                     {% endif %}
-                {% endwith %}
+                {% endwith %} -->
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" placeholder="Email*" id="login_email" name="login_email">
                 </div>
@@ -27,10 +27,10 @@
                 <button type="submit" class="btn btn-ss"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
             </form>
         </div>
-        <div class="col-md-6 mb-3" id="register-form" style="display: none;">
+        <div class="col-md-6 mb-3" id="register-form" style="display: {% if registration %} block {% else %} none {% endif %};">
                 <h2 class="text-center mb-4">Register</h2>
             <form action="{{ url_for('main.register') }}" method="POST">  
-                {% with messages = get_flashed_messages() %}
+                <!-- {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         <div class="alert alert-danger">
                             {% for message in messages %}
@@ -38,18 +38,18 @@
                             {% endfor %}
                         </div>
                     {% endif %}
-                {% endwith %}
+                {% endwith %} -->
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Name" id="register_first_name" name="register_first_name">
+                    <input type="text" class="form-control" placeholder="Name" id="register_first_name" name="register_first_name" value="{{ form.get('register_first_name', '') }}">
                 </div>
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Surname" id="register_last_name" name="register_last_name">
+                    <input type="text" class="form-control" placeholder="Surname" id="register_last_name" name="register_last_name" value="{{ form.get('register_last_name', '') }}">
                 </div>
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Email*" id="register_email" name="register_email">
+                    <input type="text" class="form-control" placeholder="Email*" id="register_email" name="register_email" value="{{ form.get('register_email', '') }}">
                 </div>
                 <div class="input-group mb-3">
-                    <input type="password" class="form-control" placeholder="Password*" id="register_password" name="register_password">
+                    <input type="password" class="form-control" placeholder="Password*" id="register_password" name="register_password" >
                 </div>
                 <div class="input-group mb-3">
                     <input type="password" class="form-control" placeholder="Confirm password*" id="register_confirm_password" name="register_confirm_password">
@@ -65,7 +65,7 @@
             </p>
             <button type="button" class="btn btn-ss" id="switch-btn">
                 <i class="fa-solid fa-arrow-right-arrow-left"></i> 
-                <span id="switch-btn-text"> Switch to Register</span>
+                <span id="switch-btn-text"> {% if registration %} Switch to Login {% else %} Switch to Register {% endif %}</span>
             </button>
         </div>
     </div>

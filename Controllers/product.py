@@ -50,8 +50,14 @@ def get_reviews(product:Product):
             reviews.append(review)
     return reviews
 
+@log_crud_operation
 def reduce_stock(order: Order):
-    ...
+    has_errors = False
+    for item in order.order_items:
+        product = dbp.push_db_record(item.product, stock=item.product.stock - item.qty)
+        if not isinstance(product, Product):
+            has_errors = True
+    return has_errors
 
 @log_crud_operation
 def get_products(db, sort: dict[str, str], name: str = None, price: list[float] = None) -> list[Product]:
