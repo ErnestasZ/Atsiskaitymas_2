@@ -9,17 +9,19 @@
         <div class="product-search">
             <div class="mb-3">
                 <form class="input-group" action="{{ url_for('main.index') }}" method="get">
-                    <input type="text" class="form-control" placeholder="Search Product" value="{{ request.args.get('search', '') }}" name="search">
+                    <input type="text" class="form-control" placeholder="Search Product"
+                        value="{{ request.args.get('search', '') }}" name="search">
                     <div class="input-group-append">
                         <button class="btn btn-outline-ss" type="submit"><i class="fas fa-search"></i> Search</button>
                     </div>
-                </form> 
-                
+                </form>
+
             </div>
         </div>
     </div>
 </section>
 <section class="container">
+    <h2 class="text-center">Ernestas Zemaitis</h2>
     <h2 class="text-center"><span>Let's check</span> our products</h2>
     <h6 class="mb-5 text-center">The best products ever</h6>
     <!-- Sorting form -->
@@ -27,14 +29,16 @@
         <div class="col-md-4">
             <form action="{{ url_for('main.index') }}" method="get">
                 <div class="input-group mb-3">
-                    <input type="number" class="form-control" placeholder="Min Price" value="{{ request.args.get('min_price', '') }}" name="min_price">
-                    <input type="number" class="form-control" placeholder="Max Price" value="{{ request.args.get('max_price', '') }}" name="max_price">
+                    <input type="number" class="form-control" placeholder="Min Price"
+                        value="{{ request.args.get('min_price', '') }}" name="min_price">
+                    <input type="number" class="form-control" placeholder="Max Price"
+                        value="{{ request.args.get('max_price', '') }}" name="max_price">
                     <div class="input-group-append">
                         <button class="btn btn-outline-ss" type="submit">Filter by Price</button>
                     </div>
                 </div>
             </form>
-            
+
         </div>
         <div class="col-md-4">
             <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">Reset All Filters</a>
@@ -42,12 +46,17 @@
         <div class="col-md-4 sort-widget">
             <form class="input-group" method="get" action="{{ url_for('main.index') }}">
                 <select class="custom-select" name="sort_option" id="sort_option">
-                    <option value="default" {% if sort_option == 'default' %}selected{% endif %}>Default sorting</option>
-                    <option value="created_at_desc" {% if sort_option == 'created_at_desc' %}selected{% endif %}>Sort by latest</option>
-                    <option value="price_asc" {% if sort_option == 'price_asc' %}selected{% endif %}>Sort by price: low to high</option>
-                    <option value="price_desc" {% if sort_option == 'price_desc' %}selected{% endif %}>Sort by price: high to low</option>
-                    <option value="rating_asc" {% if sort_option == 'rating_asc' %}selected{% endif %}>Sort by rating: low to high</option>
-                    <option value="rating_desc" {% if sort_option == 'rating_desc' %}selected{% endif %}>Sort by rating: high to low</option>
+                    <option value="default" {% if sort_option=='default' %}selected{% endif %}>Default sorting</option>
+                    <option value="created_at_desc" {% if sort_option=='created_at_desc' %}selected{% endif %}>Sort by
+                        latest</option>
+                    <option value="price_asc" {% if sort_option=='price_asc' %}selected{% endif %}>Sort by price: low to
+                        high</option>
+                    <option value="price_desc" {% if sort_option=='price_desc' %}selected{% endif %}>Sort by price: high
+                        to low</option>
+                    <option value="rating_asc" {% if sort_option=='rating_asc' %}selected{% endif %}>Sort by rating: low
+                        to high</option>
+                    <option value="rating_desc" {% if sort_option=='rating_desc' %}selected{% endif %}>Sort by rating:
+                        high to low</option>
                 </select>
                 <div class="input-group-append">
                     <button class="btn btn-outline-ss" type="submit">Sort</button>
@@ -62,76 +71,80 @@
     {% endif %}
     <div class="products grid-g">
         {% for product in products %}
-            {% if product.is_active %}
-            <div class="product-card">
-                <div class="product-card-wrap mb-3">
-                    <a href="{{ url_for('main.product_detail', product_id=product.id) }}">
-                        <div class="product-title mb-3">
-                                {{ product.title }}
+        {% if product.is_active %}
+        <div class="product-card">
+            <div class="product-card-wrap mb-3">
+                <a href="{{ url_for('main.product_detail', product_id=product.id) }}">
+                    <div class="product-title mb-3">
+                        {{ product.title }}
+                    </div>
+                    <div class="product-img  mb-3">
+                        {% if product.image.startswith('http') %}
+                        <img src="{{ product.image }}" alt="{{ product.title }}">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ product.image) }}"
+                            alt="{{ product.title }}">
+                        {% endif %}
+                    </div>
+                    <div class="product-rating mb-2">
+                        {% if product.average_rating %}
+                        <div class="rating-stars">
+                            {% for i in range(1, 6) %}
+                            {% if product.average_rating >= i %}
+                            <!-- Full star -->
+                            <i class="fa fa-star"></i>
+                            {% elif product.average_rating > (i - 1) and product.average_rating < i %} <!-- Half star
+                                -->
+                                <i class="fa fa-star-half-o"></i>
+                                {% else %}
+                                <!-- Empty star -->
+                                <i class="fa fa-star-o"></i>
+                                {% endif %}
+                                {% endfor %}
                         </div>
-                        <div class="product-img  mb-3">
-                            {% if product.image.startswith('http') %}
-                                <img src="{{ product.image }}" alt="{{ product.title }}">
+                        <!-- <div>{{ product.average_rating|round(1) }} / 5</div> -->
+                        {% else %}
+                        <div class="rating-stars">
+                            <!-- Display 5 empty stars if no rating -->
+                            <i class="fa fa-star-o"></i>
+                            <i class="fa fa-star-o"></i>
+                            <i class="fa fa-star-o"></i>
+                            <i class="fa fa-star-o"></i>
+                            <i class="fa fa-star-o"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="product-stock mb-2">
+                        {% if product.stock > 0 %}
+                        In Stock
+                        {% else %}
+                        <span>Out of Stock</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-price">
+                        {% if product.discounted_price < product.price %} <span class="original-price">{{ product.price
+                            }} €</span>
+                            <span class="discounted-price">{{ product.discounted_price | round(2) }} €</span>
                             {% else %}
-                                <img src="{{ url_for('static', filename='uploads/' ~ product.image) }}" alt="{{ product.title }}">
+                            <span>{{ product.price }} €</span>
                             {% endif %}
-                        </div>
-                        <div class="product-rating mb-2">
-                            {% if product.average_rating %}
-                                <div class="rating-stars">
-                                    {% for i in range(1, 6) %}
-                                        {% if product.average_rating >= i %}
-                                            <!-- Full star -->
-                                            <i class="fa fa-star"></i>
-                                        {% elif product.average_rating > (i - 1) and product.average_rating < i %}
-                                            <!-- Half star -->
-                                            <i class="fa fa-star-half-o"></i>
-                                        {% else %}
-                                            <!-- Empty star -->
-                                            <i class="fa fa-star-o"></i>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                                <!-- <div>{{ product.average_rating|round(1) }} / 5</div> -->
-                            {% else %}
-                                <div class="rating-stars">
-                                    <!-- Display 5 empty stars if no rating -->
-                                    <i class="fa fa-star-o"></i>
-                                    <i class="fa fa-star-o"></i>
-                                    <i class="fa fa-star-o"></i>
-                                    <i class="fa fa-star-o"></i>
-                                    <i class="fa fa-star-o"></i>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="product-stock mb-2">
-                            {% if product.stock > 0 %}
-                                In Stock
-                            {% else %}
-                                <span>Out of Stock</span>
-                            {% endif %}
-                        </div>
-                        <div class="product-price">
-                            {% if product.discounted_price < product.price %}
-                                <span class="original-price">{{ product.price }} €</span>
-                                <span class="discounted-price">{{ product.discounted_price | round(2) }} €</span>
-                            {% else %}
-                                <span>{{ product.price }} €</span>
-                            {% endif %}
-                        </div>
-                    </a>
-                </div>
-                <div class="product-actions ">
-                    {% if product.stock > 0 %}
-                    <form id="add-to-cart-form-{{ product.id }}" action="{{ url_for('main.add_to_cart', product_id=product.id) }}" method="post" onsubmit="addToCart(event, '{{ product.id }}')">
-                        <button type="submit" class="btn btn-ss"><i class="fas fa-cart-plus"></i> Add to cart</button>
-                    </form>
-                    {% endif %}
-                    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-outline-ss"><i class="fas fa-eye"></i> View product</a>
+                    </div>
                 </a>
-                </div>
             </div>
-            {% endif %}
+            <div class="product-actions ">
+                {% if product.stock > 0 %}
+                <form id="add-to-cart-form-{{ product.id }}"
+                    action="{{ url_for('main.add_to_cart', product_id=product.id) }}" method="post"
+                    onsubmit="addToCart(event, '{{ product.id }}')">
+                    <button type="submit" class="btn btn-ss"><i class="fas fa-cart-plus"></i> Add to cart</button>
+                </form>
+                {% endif %}
+                <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-outline-ss"><i
+                        class="fas fa-eye"></i> View product</a>
+                </a>
+            </div>
+        </div>
+        {% endif %}
         {% endfor %}
     </div>
 </section>
