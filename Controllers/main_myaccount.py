@@ -9,6 +9,7 @@ from Models.order import Order
 from Models.user import User
 from Models.order_item import Order_item
 from Models.review import Review
+from Models.payment import Payment
 from Models.wallet_transaction import Wallet_transaction
 from sqlalchemy import func, select
 from Misc.decorators import handle_errors
@@ -93,6 +94,17 @@ def get_user_balance(user_id):
 @handle_errors(default_return=None, flash_message="Failed to get User Balance.")
 def add_balance(user_id, amount):
     wallet_transaction = Wallet_transaction(user_id=user_id, amount=amount)
+    db.session.add(wallet_transaction)
+    db.session.commit()
+
+
+@handle_errors(default_return=None, flash_message="Failed to get User Balance.")
+def add_balance_stripe(user_id, amount, session_id):
+    amount = amount/100
+    payment = Payment(user_id=user_id, amount=amount,
+                      session_id=session_id, status='success', currency='eur')
+    wallet_transaction = Wallet_transaction(user_id=user_id, amount=amount)
+    db.session.add(payment)
     db.session.add(wallet_transaction)
     db.session.commit()
 

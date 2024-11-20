@@ -2,7 +2,10 @@
 const stripe = Stripe("pk_test_51QMlQGAGst8Frj15WjwUV2Oxoy9kKB4g20VVawApbZfkDo4i7U8HLmOLWZnpqzfRBi1oWUjgk76UZkCeCFa27xt300s8fWwweL");
 
 // The items the customer wants to buy
-const items = [{ id: "xl-tshirt", amount: 1000 }];
+const urlParams = new URLSearchParams(window.location.search);
+const get_amount = Math.round(urlParams.get('balance') * 100) || null;
+console.log(get_amount)
+const items = [{ id: "balance", amount: get_amount }];
 
 let elements;
 
@@ -45,7 +48,7 @@ async function handleSubmit(e) {
         elements,
         confirmParams: {
             // Make sure to change this to your payment completion page
-            return_url: "http://localhost:4242/complete.html",
+            return_url: "http://127.0.0.1:5004/stripe-payment/complete",
         },
     });
 
