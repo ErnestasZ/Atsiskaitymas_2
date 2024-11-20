@@ -40,8 +40,8 @@ def register_payment_routes(app, db):
                 },
             )
             print(intent['id'])
-            myac.add_balance_stripe(current_user.id, calculate_order_amount(
-                data['items']), intent['id'])
+            # myac.add_balance_stripe(current_user.id, calculate_order_amount(
+            #     data['items']), intent['id'])
             flash('Balance updated successfully.', 'main success')
             return jsonify({
                 'clientSecret': intent['client_secret'],
@@ -70,6 +70,15 @@ def register_payment_routes(app, db):
     @payment.route('/complete')
     def complete():
         return render_template('payment/complete.html')
+
+    @payment.route('/webhook', methods=['POST'])
+    def stripe_webhook():
+        payload = request.data
+        sig_header = request.headers.get('Stripe-Signature')
+        webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+        print('pasiekiau')
+        return jsonify(success=True), 200
+# Add this to your environment variables
 
     # register blueprint
     app.register_blueprint(payment)

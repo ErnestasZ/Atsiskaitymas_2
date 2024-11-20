@@ -157,13 +157,13 @@ def register_main_routes(app, db: SQLAlchemy):
             if not is_valid_password(password):
                 flash('Password must be at least 6 characters long and include at least one capital letter, one number, and one special symbol.', 'warning')
                 return render_template('login.html', registration=True, form=request.form)
-        
+
             if not first_name or not last_name or not email or not password or not confirm_password:
                 flash('Please fill all fields', 'warning')
-                return render_template('login.html', registration=True, form=request.form)
+                return redirect(url_for('main.login'))
             if password != confirm_password:
                 flash('Passwords do not match.', 'warning')
-                return render_template('login.html', registration=True, form=request.form)
+                return redirect(url_for('main.login'))
 
             existing_user = get_user_by_email(db, email)
             if existing_user:
@@ -181,6 +181,7 @@ def register_main_routes(app, db: SQLAlchemy):
             result = create_user(db, new_user)
             if result is not True:
                 flash(result, 'danger')
+                return redirect(url_for('main.login'))
             else:
                 # send user verification email
                 send_verification_email(new_user)
