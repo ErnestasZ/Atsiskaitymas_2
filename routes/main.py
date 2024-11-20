@@ -132,9 +132,9 @@ def register_main_routes(app, db: SQLAlchemy):
                         return redirect(url_for('main.index'))
                     user.failed_count += 1
                     if user.failed_count >= 4:
-                        user.blocked_until == datetime.now() + timedelta(hours=1)
+                        user.blocked_until = datetime.now() + timedelta(hours=1)
                     elif user.failed_count >= 3:
-                        user.blocked_until >= datetime.now() + timedelta(minutes=5)
+                        user.blocked_until = datetime.now() + timedelta(minutes=5)
                     update_user(db, user)
                     flash('Invalid email or password. Please try again.', 'danger')
             else:
