@@ -27,6 +27,8 @@ from Services.mail import send_verification_email
 import json
 import re
 
+from Misc.my_logger import my_logger
+
 
 def is_valid_password(password):
     password_regex = r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+={}\[\]:;"\'<>,.?/`~\\|]).{6,}$'
@@ -47,6 +49,7 @@ def register_main_routes(app, db: SQLAlchemy):
     
     @main.route('/uzduotis/asmenine', methods=['GET', 'POST'])
     def asmeninis():
+        my_logger.info(f"Iskviestas mano puslapis: {request.path}")
         return redirect(url_for('main.index'))
 
     @app.errorhandler(404)
