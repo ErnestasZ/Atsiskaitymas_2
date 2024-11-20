@@ -50,6 +50,11 @@ def register_main_routes(app, db: SQLAlchemy):
     login_manager.init_app(app)
     login_manager.login_view = "main.login"
 
+    @main.route('/ernestas-uzduotis-2', methods=['GET', 'POST'])
+    def ernestas_uzduotis_2():
+        # my_logger.info("Ernestas uzduotis ")
+        return redirect('/')
+
     # mail = Mail(app)
 
     @login_manager.user_loader
