@@ -58,6 +58,7 @@ def register_main_routes(app, db: SQLAlchemy):
 
     @main.route('/uzduotis/asmenine', methods=['GET', 'POST'])
     def uzduotis_2():
+        my_logger.info(f'iskviestas route /uzduotis/asmenine')
         return redirect(url_for('main.index'))
 
     @main.route('/')
