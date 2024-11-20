@@ -25,6 +25,18 @@ from Controllers.user import create_user, get_user_by_email, update_user, verify
 # from flask_mail import Mail
 from Services.mail import send_verification_email
 import json
+import re
+
+
+def is_valid_password(password):
+    password_regex = r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+={}\[\]:;"\'<>,.?/`~\\|]).{6,}$'
+    return re.match(password_regex, password) is not None
+
+
+def is_valid_email(email):
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(email_regex, email) is not None
+
 
 main = Blueprint('main', __name__, url_prefix='/')
 
@@ -94,11 +106,6 @@ def register_main_routes(app, db: SQLAlchemy):
         if current_user.is_authenticated:
             return redirect(url_for('main.index'))
         if request.method == 'POST':
-            # Get email and password from form
-            # form_data = {
-            #         'login_email': '',
-            #         'login_password': ''
-            #     }
             user_login = request.form.get('login_email')
             password = request.form.get('login_password')
             # Find the user by email
@@ -138,19 +145,19 @@ def register_main_routes(app, db: SQLAlchemy):
     def register():
         if request.method == 'POST':
             # Get user input from the registration form
-            # form_data = {
-            #         'register_first_name': '',
-            #         'register_last_name': '',
-            #         'register_email': '',
-            #         'register_password': '',
-            #         'register_confirm_password': ''
-            #     }
             first_name = request.form['register_first_name']
             last_name = request.form['register_last_name']
             email = request.form['register_email']
             password = request.form['register_password']
             confirm_password = request.form['register_confirm_password']
 
+            if not is_valid_email(email):
+                flash('Please enter a valid email address.', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
+            if not is_valid_password(password):
+                flash('Password must be at least 6 characters long and include at least one capital letter, one number, and one special symbol.', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
+        
             if not first_name or not last_name or not email or not password or not confirm_password:
                 flash('Please fill all fields', 'warning')
                 return render_template('login.html', registration=True, form=request.form)
