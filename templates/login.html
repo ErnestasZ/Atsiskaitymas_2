@@ -40,16 +40,16 @@
                     {% endif %}
                 {% endwith %} -->
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Name" id="register_first_name" name="register_first_name" value="{{ form['register_first_name'] }}">
+                    <input type="text" class="form-control" placeholder="Name" id="register_first_name" name="register_first_name" value="{{ form.get('register_first_name', '') }}">
                 </div>
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Surname" id="register_last_name" name="register_last_name" value="{{ form['register_last_name'] }}">
+                    <input type="text" class="form-control" placeholder="Surname" id="register_last_name" name="register_last_name" value="{{ form.get('register_last_name', '') }}">
                 </div>
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Email*" id="register_email" name="register_email" value="{{ form['register_email'] }}">
+                    <input type="text" class="form-control" placeholder="Email*" id="register_email" name="register_email" value="{{ form.get('register_email', '') }}">
                 </div>
                 <div class="input-group mb-3">
-                    <input type="password" class="form-control" placeholder="Password*" id="register_password" name="register_password" value="{{ form['register_password'] }}">
+                    <input type="password" class="form-control" placeholder="Password*" id="register_password" name="register_password" >
                 </div>
                 <div class="input-group mb-3">
                     <input type="password" class="form-control" placeholder="Confirm password*" id="register_confirm_password" name="register_confirm_password">

@@ -163,3 +163,4 @@ cython_debug/
 #.idea/
 d_app.py
 d_README.md
+.env.dev
