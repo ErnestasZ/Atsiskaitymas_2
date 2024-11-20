@@ -1,6 +1,4 @@
 # constants
 
 ORDER_STATUSES = ['Pending', 'Done', 'Canceled']
-LOYALTIES = {'orders': 5, 'amount': 1500, 'percents': 10}
-
-
+LOYALTIES = {'orders': 5, 'amount': 1500, 'loyalty': 'silver'}

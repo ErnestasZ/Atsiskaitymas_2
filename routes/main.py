@@ -24,11 +24,24 @@ from flask_login import LoginManager
 from Controllers.user import create_user, get_user_by_email, update_user, verify_user_token
 # from flask_mail import Mail
 from Services.mail import send_verification_email
+import json
+import re
+
+
+def is_valid_password(password):
+    password_regex = r'^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+={}\[\]:;"\'<>,.?/`~\\|]).{6,}$'
+    return re.match(password_regex, password) is not None
+
+
+def is_valid_email(email):
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(email_regex, email) is not None
+
 
 main = Blueprint('main', __name__, url_prefix='/')
 
 
-def register_main_routes(app, db):
+def register_main_routes(app, db: SQLAlchemy):
 
     @app.errorhandler(404)
     def page_not_found(e):
@@ -56,9 +69,18 @@ def register_main_routes(app, db):
         products = get_products(
             db, {sort['key']: sort['order']}, name=search_option, price=[min_price, max_price])
 
+        loyalty_discount = get_loyalty_discount()
+
         for product in products:
             product.average_rating = get_average_rating(
                 product)  # Get rating for each product in list
+
+            # Apply loyalty discount to product price
+            if loyalty_discount > 0:
+                product.discounted_price = product.price * \
+                    (1 - loyalty_discount / 100)
+            else:
+                product.discounted_price = product.price
 
         no_products_message = None
         if not products:
@@ -71,14 +93,19 @@ def register_main_routes(app, db):
         product = Product.query.get_or_404(product_id)  # get products by ID
         average_rating = get_average_rating(product)  # get product rating
         reviews = get_reviews(product)  # get product revievs
-        return render_template('product.html', product=product, average_rating=average_rating, reviews=reviews)
+        loyalty_discount = get_loyalty_discount()
+
+        if loyalty_discount > 0:
+            discounted_price = product.price * (1 - loyalty_discount / 100)
+        else:
+            discounted_price = product.price
+        return render_template('product.html', product=product, average_rating=average_rating, reviews=reviews, discounted_price=discounted_price)
 
     @main.route('/login', methods=['GET', 'POST'])
     def login():
         if current_user.is_authenticated:
             return redirect(url_for('main.index'))
         if request.method == 'POST':
-            # Get email and password from form
             user_login = request.form.get('login_email')
             password = request.form.get('login_password')
             # Find the user by email
@@ -112,7 +139,7 @@ def register_main_routes(app, db):
                     flash('Invalid email or password. Please try again.', 'danger')
             else:
                 flash('Invalid email or password. Please try again.', 'danger')
-        return render_template('login.html')
+        return render_template('login.html', registration=False, form=request.form)
 
     @main.route('/register', methods=['GET', 'POST'])
     def register():
@@ -123,39 +150,44 @@ def register_main_routes(app, db):
             email = request.form['register_email']
             password = request.form['register_password']
             confirm_password = request.form['register_confirm_password']
-            # validations
+
+            if not is_valid_email(email):
+                flash('Please enter a valid email address.', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
+            if not is_valid_password(password):
+                flash('Password must be at least 6 characters long and include at least one capital letter, one number, and one special symbol.', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
+        
+            if not first_name or not last_name or not email or not password or not confirm_password:
+                flash('Please fill all fields', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
             if password != confirm_password:
-                flash('Passwords do not match.', 'danger')
-                return redirect(url_for('main.login'))
+                flash('Passwords do not match.', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
+
             existing_user = get_user_by_email(db, email)
             if existing_user:
                 flash(
-                    'Email is already registered. Please use a different email.', 'danger')
-                return redirect(url_for('main.login'))
+                    'Email is already registered. Please use a different email.', 'warning')
+                return render_template('login.html', registration=True, form=request.form)
+
             # create
             new_user = User(
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                token='',  # You may want to set a token for email verification
-                verified_at=None,
-                is_admin=False,
-                is_deleted=False,
-                blocked_until=None,
-                failed_count=0,
-                loyalty_id=None
             )
             new_user.set_password(password)
             result = create_user(db, new_user)
             if result is not True:
                 flash(result, 'danger')
-                return redirect(url_for('main.login'))
             else:
                 # send user verification email
                 send_verification_email(new_user)
                 flash('Your account has been created successfully!', 'success')
                 return redirect(url_for('main.registration_success'))
-        return redirect(url_for('main.login'))
+
+        return render_template('login.html', registration=True, form=request.form)
 
     @main.route('/registration_success', methods=['GET', 'POST'])
     def registration_success():
@@ -184,6 +216,7 @@ def register_main_routes(app, db):
     @main.route('/my-account')
     @login_required
     def my_acc():
+
         return render_template('my_account.html')
 
     @main.route('/my-account/orders')
@@ -237,8 +270,9 @@ def register_main_routes(app, db):
         if form.validate_on_submit():
             # pass user id
             myac.add_balance(current_user.id, form.balance.data)
-            flash('Balance updated successfully.', 'main success')
-            return redirect(url_for('main.my_balance'))
+            # flash('Balance updated successfully.', 'main success')
+            # return redirect(url_for('main.my_balance'))
+            return redirect(url_for('stripe_payment.checkout', balance=json.dumps(form.balance.data)))
         return render_template('balance.html', balance=balance, form=form)
 
     @main.route('/my-account/user-details', methods=['GET', 'POST'])
@@ -264,63 +298,236 @@ def register_main_routes(app, db):
 
     @main.route('/add_to_cart/<int:product_id>', methods=['POST'])
     def add_to_cart(product_id):
-        qty = request.form.get('qty', 1)  # Default quantity
-        session_id = get_session_id()  # Get fake session ID
+        try:
+            # Default quantity if not passed
+            qty = int(request.form.get('qty', 1))
+        except:
+            flash('Quantity must be a number', 'error')
+            return jsonify({'error': 'Quantity must be a number'}), 400
 
-        # Check if product already in the cart
-        cart_product = Cart_product.query.filter_by(
-            session_id=session_id, product_id=product_id).first()
+        session_id = get_session_id()
+        product = get_product_by_id(product_id)
+        if not product:
+            flash('Product you are trying to add is not available.', 'warning')
+            return jsonify({'error': 'Product not available'}), 400
+
+        if qty > product.stock:
+            flash(f'Not enough stock available. Only {
+                  product.stock} units in stock.', 'warning')
+            qty = product.stock
+
+        if current_user.is_authenticated:
+            user_id = current_user.id
+            cart_product = get_cart_product(
+                db, session_id=None, product_id=product_id, user_id=user_id)
+        else:
+            user_id = None
+            cart_product = get_cart_product(
+                db, session_id=session_id, product_id=product_id)
 
         if cart_product:
-            cart_product.qty += int(qty)
-        else:
-            cart_product = Cart_product(
-                session_id=session_id, product_id=product_id, qty=int(qty))
-            db.session.add(cart_product)
+            new_qty = cart_product.qty + qty
 
-        db.session.commit()
-        return jsonify({'message': 'Product added to cart'})
+            if new_qty > product.stock:
+                new_qty = product.stock
+                flash(f'We do not have enough stock for {
+                      cart_product.product.title}. The quantity was automatically adjusted to {new_qty}.', 'warning')
+                return jsonify({'message': 'We do not have enough stock for this product.'}), 200
+
+            if cart_product.qty != new_qty:
+                cart_product.qty = new_qty
+                db.session.commit()
+                flash(f'Product quantity updated in cart to {
+                      new_qty}.', 'success')
+                return jsonify({'message': 'Product quantity updated in cart.'}), 200
+
+        else:
+            if qty > product.stock:
+                qty = product.stock
+                flash(f'Not enough stock for {
+                      product.title}. The quantity was automatically adjusted to {qty}.', 'warning')
+
+            new_cart_product = Cart_product(
+                session_id=session_id, user_id=user_id, product_id=product_id, qty=qty)
+            if add_cart_product(db, new_cart_product):
+                flash('Product added to cart.', 'success')
+                return jsonify({'message': 'Product added to cart.'}), 200
+            else:
+                flash(
+                    'Error occurred while adding product. Please contact administrator.', 'warning')
+                return jsonify({'error': 'Error occurred while adding product. Please contact administrator.'}), 400
+        # return redirect(request.referrer)
 
     @main.route('/cart')
     def cart():
-        session_id = get_session_id()
-        cart_products = Cart_product.query.filter_by(
-            session_id=session_id).all()
+        if current_user.is_authenticated:
+            cart_products = get_cart(db, None, user_id=current_user.id)
+        else:
+            session_id = get_session_id()
+            cart_products = get_cart(db, session_id)
+
         total_price = sum(item.product.price *
                           item.qty for item in cart_products)
         total_price = round(total_price, 2)
-        return render_template('cart.html', cart_products=cart_products, total_price=total_price)
+        loyalty_discount = get_loyalty_discount()
+        return render_template('cart.html', cart_products=cart_products, total_price=total_price, loyalty_discount=loyalty_discount)
+
+    @main.route('/remove_cart_item/<int:product_id>', methods=['GET'])
+    def remove_cart_item(product_id):
+        session_id = get_session_id()  # Get session ID
+
+        if current_user.is_authenticated:
+            user_id = current_user.id
+            cart_product = get_cart_product(
+                db, session_id=None, product_id=product_id, user_id=user_id)
+        else:
+            user_id = None
+            cart_product = get_cart_product(
+                db, session_id=session_id, product_id=product_id)
+
+        if not cart_product:
+            print('qwdas')
+            flash(f'Product you are trying to remove is not in your cart', 'warning')
+            return redirect(url_for('main.cart'))
+
+        print(cart_product)
+        flash(
+            f'Product {cart_product.product.title} was removed from your cart', 'success')
+        db.session.delete(cart_product)
+        db.session.commit()
+        return redirect(url_for('main.cart'))
 
     @main.route('/update_cart', methods=['POST'])
     def update_cart():
         session_id = get_session_id()  # Get session ID
+        for key, qty in request.form.items():
+            try:
+                qty = int(qty)
+            except:
+                flash('Quantity must be number', 'error')
+                return redirect(request.referrer)
 
-        # all form fields
-        for key, value in request.form.items():
-            if key.startswith('qty_'):
+            if qty < 1:
+                flash('Quantity must be 1 or higher', 'error')
+                return redirect(request.referrer)
+
+            product_id = int(key.split('_')[1])
+            product = get_product_by_id(product_id)
+            if current_user.is_authenticated:
+                user_id = current_user.id
+                cart_product = get_cart_product(
+                    db, session_id=None, product_id=product_id, user_id=user_id)
+            else:
+                user_id = None
+                cart_product = get_cart_product(
+                    db, session_id=session_id, product_id=product_id)
+
+            if not product:
+                flash(f'Product {
+                      cart_product.product.title} is no longer available and was removed from your cart', 'warning')
+                db.session.delete(cart_product)
+                db.session.commit
+                continue
+
+            if key.startswith('productid_'):
                 # Extract item ID from the form field name
-                item_id = int(key.split('_')[1])
-                cart_item = Cart_product.query.get(item_id)
-                if cart_item:
-                    cart_item.qty = int(value)  # Update the quantity
-            elif key.startswith('remove_'):
-                item_id = int(key.split('_')[1])  # Extract item ID for removal
-                cart_item = Cart_product.query.get(item_id)
-                if cart_item:
-                    db.session.delete(cart_item)  # Remove item
-        db.session.commit()
+                if cart_product:
+                    if qty > product.stock:
+                        qty = product.stock
+                        flash(f'We do not have enough product {
+                              cart_product.product.title} in stock quantity was automatically updated to {qty}', 'warning')
+                    if cart_product.qty != qty:
+                        cart_product.qty = qty
+                        db.session.commit()
+                        flash(f'Product {cart_product.product.title} quantity was updated successfully to {
+                              qty}', 'warning')
         return redirect(url_for('main.cart'))
 
     @main.before_app_request
     def before_request():
+        if current_user.is_authenticated:
+            user_id = current_user.id
+        else:
+            user_id = None
         session_id = get_session_id()
-        g.cart_quantity = db.session.query(db.func.sum(Cart_product.qty)).filter_by(
-            session_id=session_id).scalar() or 0
+        cart_items = get_cart(db, session_id, user_id)
+        g.cart_quantity = sum(
+            item.qty for item in cart_items) if cart_items else 0
 
-    @main.route('/checkout')
+    @main.route('/checkout', methods=['GET'])
     @login_required
     def checkout():
-        return render_template('checkout.html')
+        session_id = get_session_id()
+        cart_products = Cart_product.query.filter_by(
+            session_id=session_id).all()
+
+        if not cart_products:
+            return redirect(url_for('main.cart'))
+
+        fill_user(cart_products, current_user)
+        discount = get_loyalty_discount()
+        order = Order(user_id=current_user.id, status="Pending",
+                      loyalty_discount=discount)
+        db.session.add(order)
+
+        no_errors = True
+        total_amount = 0
+
+        for item in cart_products:
+            if item.qty > item.product.stock:
+                no_errors = False
+                flash('Prekių kiekis viršija kiekį esanti sandėlyje', 'warning')
+
+            unit_price = item.product.price * (1 - discount / 100)
+            total_price = unit_price * item.qty
+            order_item = Order_item(order_id=order.id,
+                                    product_id=item.product.id,
+                                    qty=item.qty,
+                                    product_name=item.product.title,
+                                    unit_price=unit_price,
+                                    total_price=total_price)
+            total_amount += total_price
+            db.session.add(order_item)
+            db.session.delete(item)
+
+        if total_amount > current_user.get_balance():
+            no_errors = False
+            flash('Neužtenka lėšų apmokėjimui!', 'warning')
+
+        if no_errors:
+            try:
+                order.total_amount = total_amount
+                db.session.add(order)
+                db.session.commit()
+                reduce_stock(order)
+                flash('Užsakymas sukurtas sekmingai', 'success')
+            except Exception as err:
+                flash(err, 'error')
+            else:
+                return render_template('checkout.html', order_id=order.id)
+        return redirect(url_for('main.cart'))
+
+    @main.route('/payment/<order_id>', methods=['GET'])
+    @main.route('/payment/', defaults={'order_id': ''}, methods=['GET'])
+    @login_required
+    def payment(order_id):
+        if order_id.isnumeric():
+            order = get_order_by_id(int(order_id))
+
+            if order and order.status == "Pending":
+                if order.total_amount <= current_user.get_balance():
+                    paiment = make_payment(current_user, order)
+
+                    if isinstance(paiment, Wallet_transaction):
+                        flash('Mokėjimas atliktas sekmingai.', 'success')
+                        return redirect(url_for('main.my_order_items', order_id=order.id))
+                    else:
+                        flash(paiment, 'error')
+                else:
+                    flash('Neužtenka lėšų apmokėjimui!', 'warning')
+            else:
+                flash('Užsakymas nerastas arba jau apmokėtas!', 'warning')
+        return redirect(url_for('main.cart'))
 
     # register blueprint
 

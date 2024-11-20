@@ -70,7 +70,11 @@
                                 {{ product.title }}
                         </div>
                         <div class="product-img  mb-3">
-                            <img src="{{ product.image }}" alt="{{ product.title }}">
+                            {% if product.image.startswith('http') %}
+                                <img src="{{ product.image }}" alt="{{ product.title }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/' ~ product.image) }}" alt="{{ product.title }}">
+                            {% endif %}
                         </div>
                         <div class="product-rating mb-2">
                             {% if product.average_rating %}
@@ -108,7 +112,12 @@
                             {% endif %}
                         </div>
                         <div class="product-price">
-                            {{ product.price }} €
+                            {% if product.discounted_price < product.price %}
+                                <span class="original-price">{{ product.price }} €</span>
+                                <span class="discounted-price">{{ product.discounted_price | round(2) }} €</span>
+                            {% else %}
+                                <span>{{ product.price }} €</span>
+                            {% endif %}
                         </div>
                     </a>
                 </div>
@@ -124,9 +133,6 @@
             </div>
             {% endif %}
         {% endfor %}
-    </div>
-    <div class="text-center">
-        If lucky pagination here
     </div>
 </section>
 {% endblock %}

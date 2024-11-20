@@ -310,3 +310,11 @@ i.fa-star-o {
   .my-account-wrapper a:hover {
     color: #000000;
   }
+
+.discounted-price {
+    color: #c90e55
+}
+.original-price {
+    color: #9b9b9b;
+    text-decoration: line-through;
+}

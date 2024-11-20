@@ -38,7 +38,7 @@
                 {% if current_user.is_authenticated %}
                 <span class="nav-link">Hello, {{ current_user.first_name }}</span>
                 <div class="dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-user"></i> 
                         My account
                     </a>
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
@@ -48,8 +48,14 @@
                       <a class="dropdown-item" href="{{ url_for('main.logout') }}">Logout</a>
                     </div>
                   </div>
+                  {% if current_user.is_admin %}
+                        <a class="nav-link" href="{{ url_for('admin.index') }}"><i class="fa-solid fa-gauge-high"></i> Admin Panel</a>
+                   {% endif %}
+                   <a class="nav-link" href="{{ url_for('main.my_balance') }}">
+                    {{current_user.get_balance()}} €
+                </a>
                 {% else %}
-                <a class="nav-link" href="{{ url_for('main.login') }}">Sign in</a>
+                <a class="nav-link" href="{{ url_for('main.login') }}"><i class="fa-solid fa-right-to-bracket"></i> Sign in</a>
                 {% endif %}
                 <a class="nav-link" href="{{ url_for('main.cart') }}">
                     <i class="fa-solid fa-cart-shopping"></i> Cart
@@ -61,6 +67,19 @@
         </div>
     </header>
     <main>
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div>
+                    {% for category, message in messages %}
+                    <div class="alert mt-3 alert-{{ category.split()[-1] }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+        </div>
         {% block content %}{% endblock %}
     </main>
     <footer>
@@ -76,13 +95,13 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="cartModalLabel">Product Added to Cart</h5>
+                    <h5 class="modal-title" id="modalMessage">Product Added to Cart</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    The product added to your cart. What would you like to do?
+                     What would you like to do next?
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-ss"
@@ -108,19 +127,24 @@
             var form = document.getElementById('add-to-cart-form-' + productId);
             var formData = new FormData(form);
 
-            fetch(form.action, {
-                method: 'POST',
-                body: formData
-            }).then(response => {
-                if (response.ok) {
-                    return response.json();  // Parse the JSON response
+            $.ajax({
+                type: 'POST',
+                url: '/add_to_cart/' + productId,
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.error) {
+                        $('#modalMessage').text(response.error);  // Show error in the modal
+                    } else {
+                        $('#modalMessage').text(response.message);  // Show success message in the modal
+                    }
+                    showCartModal();  // Show the modal after response
+                },
+                error: function(xhr, status, error) {
+                    $('#modalMessage').text("An error occurred: " + error);  // Handle AJAX errors
+                    showCartModal();
                 }
-                throw new Error('Network response was not ok.');
-            }).then(data => {
-                console.log(data.message);  // Log the success message
-                showCartModal();  // Show the modal on successful response
-            }).catch(error => {
-                console.error('Error adding product to cart:', error);
             });
         }
     </script>
