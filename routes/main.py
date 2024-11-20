@@ -43,6 +43,12 @@ main = Blueprint('main', __name__, url_prefix='/')
 
 def register_main_routes(app, db: SQLAlchemy):
 
+
+    
+    @main.route('/uzduotis/asmenine', methods=['GET', 'POST'])
+    def asmeninis():
+        return redirect(url_for('main.index'))
+
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template('404.html'), 404
