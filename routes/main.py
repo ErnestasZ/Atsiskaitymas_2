@@ -157,7 +157,7 @@ def register_main_routes(app, db: SQLAlchemy):
             if not is_valid_password(password):
                 flash('Password must be at least 6 characters long and include at least one capital letter, one number, and one special symbol.', 'warning')
                 return render_template('login.html', registration=True, form=request.form)
-        
+
             if not first_name or not last_name or not email or not password or not confirm_password:
                 flash('Please fill all fields', 'warning')
                 return render_template('login.html', registration=True, form=request.form)
