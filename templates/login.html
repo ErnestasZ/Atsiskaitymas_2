@@ -6,7 +6,7 @@
 <div class="container my-5">
     <h2 class="mb-5 text-center">Registration / Login</h2>
     <div class="row" id="registration-forms">
-        <div class="col-md-6 mb-3" id="login-form" style="display: {% if registration %} none {% else %} block {% endif %};">
+        <div class="col-md-6 mb-3" id="login-form" style="display: block;">
             <h2 class="text-center mb-4">Login</h2>
             <form action="{{ url_for('main.login') }}" method="POST">     
                 <!-- {% with messages = get_flashed_messages() %}
@@ -19,17 +19,17 @@
                     {% endif %}
                 {% endwith %} -->
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Email*" id="login_email" name="login_email">
+                    <input type="email" class="form-control" placeholder="Email*" id="login_email" name="login_email" required>
                 </div>
                 <div class="input-group mb-3">
-                    <input type="password" class="form-control" placeholder="Password*" id="login_password" name="login_password">
+                    <input type="password" class="form-control" placeholder="Password*" id="login_password" name="login_password" required>
                 </div>
                 <button type="submit" class="btn btn-ss"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
             </form>
         </div>
-        <div class="col-md-6 mb-3" id="register-form" style="display: {% if registration %} block {% else %} none {% endif %};">
-                <h2 class="text-center mb-4">Register</h2>
-            <form action="{{ url_for('main.register') }}" method="POST">  
+        <div class="col-md-6 mb-3" id="register-form" style="display: none;">
+            <h2 class="text-center mb-4">Register</h2>
+            <form id="registrationForm" action="{{ url_for('main.register') }}" method="POST">  
                 <!-- {% with messages = get_flashed_messages() %}
                     {% if messages %}
                         <div class="alert alert-danger">
@@ -40,19 +40,25 @@
                     {% endif %}
                 {% endwith %} -->
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Name" id="register_first_name" name="register_first_name" value="{{ form.get('register_first_name', '') }}">
+                    <input type="text" class="form-control" placeholder="Name*" id="register_first_name" name="register_first_name" value="{{ form.get('register_first_name', '') }}" required>
                 </div>
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" placeholder="Surname" id="register_last_name" name="register_last_name" value="{{ form.get('register_last_name', '') }}">
                 </div>
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Email*" id="register_email" name="register_email" value="{{ form.get('register_email', '') }}">
+                    <input type="email" class="form-control" placeholder="Email*" id="register_email" name="register_email" value="{{ form.get('register_email', '') }}" required>
                 </div>
                 <div class="input-group mb-3">
-                    <input type="password" class="form-control" placeholder="Password*" id="register_password" name="register_password" >
+                    <input type="password" class="form-control" placeholder="Password*" id="register_password" name="register_password" required>
                 </div>
                 <div class="input-group mb-3">
-                    <input type="password" class="form-control" placeholder="Confirm password*" id="register_confirm_password" name="register_confirm_password">
+                    <input type="password" class="form-control" placeholder="Confirm password*" id="register_confirm_password" name="register_confirm_password" required>
+                </div>
+                <div id="passwordMismatchError" class="alert alert-danger" style="display: none;">
+                    Passwords do not match.
+                </div>
+                <div id="passwordCriteriaError" class="alert alert-danger" style="display: none;">
+                    Password must be at least 6 characters long and include at least one capital letter, one number, and one special symbol.
                 </div>
                 <button type="submit" class="btn btn-ss"><i class="fa-regular fa-circle-check"></i> Register</button>
             </form>
@@ -65,7 +71,7 @@
             </p>
             <button type="button" class="btn btn-ss" id="switch-btn">
                 <i class="fa-solid fa-arrow-right-arrow-left"></i> 
-                <span id="switch-btn-text"> {% if registration %} Switch to Login {% else %} Switch to Register {% endif %}</span>
+                <span id="switch-btn-text"> Switch to Register</span>
             </button>
         </div>
     </div>
@@ -94,6 +100,39 @@
             switchBtnIcon.classList.add('fa-arrow-left');
         }
     });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const registrationForm = document.getElementById('registrationForm');
+        const passwordInput = document.getElementById('register_password');
+        const confirmPasswordInput = document.getElementById('register_confirm_password');
+        const passwordMismatchError = document.getElementById('passwordMismatchError');
+        const passwordCriteriaError = document.getElementById('passwordCriteriaError');
+
+        registrationForm.addEventListener('submit', function (event) {
+            // Clear previous errors
+            passwordMismatchError.style.display = 'none';
+            passwordCriteriaError.style.display = 'none';
+
+            // Password validation regex
+            const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
+
+            let valid = true;
+
+            if (passwordInput.value !== confirmPasswordInput.value) {
+                passwordMismatchError.style.display = 'block';
+                valid = false;
+            }
+
+            if (!passwordPattern.test(passwordInput.value)) {
+                passwordCriteriaError.style.display = 'block';
+                valid = false;
+            }
+
+            if (!valid) {
+                event.preventDefault();  // Prevent form submission
+            }
+        });
+    });
 </script>
-    
+
 {% endblock %}
