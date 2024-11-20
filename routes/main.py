@@ -92,6 +92,10 @@ def register_main_routes(app, db:SQLAlchemy):
             return redirect(url_for('main.index'))
         if request.method == 'POST':
             # Get email and password from form
+            # form_data = {
+            #         'login_email': '',
+            #         'login_password': ''
+            #     }            
             user_login = request.form.get('login_email')
             password = request.form.get('login_password')
             # Find the user by email
@@ -125,12 +129,19 @@ def register_main_routes(app, db:SQLAlchemy):
                     flash('Invalid email or password. Please try again.', 'danger')
             else:
                 flash('Invalid email or password. Please try again.', 'danger')
-        return render_template('login.html')
+        return render_template('login.html', registration=False, form=request.form)
 
     @main.route('/register', methods=['GET', 'POST'])
     def register():
         if request.method == 'POST':
             # Get user input from the registration form
+            # form_data = {
+            #         'register_first_name': '',
+            #         'register_last_name': '',
+            #         'register_email': '',
+            #         'register_password': '',
+            #         'register_confirm_password': ''
+            #     }            
             first_name = request.form['register_first_name']
             last_name = request.form['register_last_name']
             email = request.form['register_email']
