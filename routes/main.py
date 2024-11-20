@@ -52,7 +52,7 @@ def register_main_routes(app, db: SQLAlchemy):
 
     @main.route('/ernestas-uzduotis-2', methods=['GET', 'POST'])
     def ernestas_uzduotis_2():
-        # my_logger.info("Ernestas uzduotis ")
+        my_logger.info("Ernestas atliko uzduoti 3")
         return redirect('/')
 
     # mail = Mail(app)
